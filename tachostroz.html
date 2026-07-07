@@ -1,0 +1,1009 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+<title>TachoStróż — asystent czasu pracy kierowcy</title>
+<meta name="theme-color" content="#0A0D12">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="TachoStróż">
+<link rel="apple-touch-icon" href="data:image/png;base64,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">
+<link rel="icon" href="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%20512%20512%22%3E%0A%3Crect%20width%3D%22512%22%20height%3D%22512%22%20fill%3D%22%230A0D12%22%2F%3E%0A%3Ccircle%20cx%3D%22256%22%20cy%3D%22256%22%20r%3D%22222%22%20fill%3D%22none%22%20stroke%3D%22%231E2938%22%20stroke-width%3D%2220%22%2F%3E%0A%3Cline%20x1%3D%22256.0%22%20y1%3D%2260.0%22%20x2%3D%22256.0%22%20y2%3D%2298.0%22%20stroke%3D%22%23FFB020%22%20stroke-width%3D%2220%22%20stroke-linecap%3D%22round%22%2F%3E%3Cline%20x1%3D%22354.0%22%20y1%3D%2286.3%22%20x2%3D%22342.0%22%20y2%3D%22107.0%22%20stroke%3D%22%23FFB020%22%20stroke-width%3D%2212%22%20stroke-linecap%3D%22round%22%2F%3E%3Cline%20x1%3D%22425.7%22%20y1%3D%22158.0%22%20x2%3D%22405.0%22%20y2%3D%22170.0%22%20stroke%3D%22%23FFB020%22%20stroke-width%3D%2212%22%20stroke-linecap%3D%22round%22%2F%3E%3Cline%20x1%3D%22452.0%22%20y1%3D%22256.0%22%20x2%3D%22414.0%22%20y2%3D%22256.0%22%20stroke%3D%22%23FFB020%22%20stroke-width%3D%2220%22%20stroke-linecap%3D%22round%22%2F%3E%3Cline%20x1%3D%22425.7%22%20y1%3D%22354.0%22%20x2%3D%22405.0%22%20y2%3D%22342.0%22%20stroke%3D%22%23FFB020%22%20stroke-width%3D%2212%22%20stroke-linecap%3D%22round%22%2F%3E%3Cline%20x1%3D%22354.0%22%20y1%3D%22425.7%22%20x2%3D%22342.0%22%20y2%3D%22405.0%22%20stroke%3D%22%23FFB020%22%20stroke-width%3D%2212%22%20stroke-linecap%3D%22round%22%2F%3E%3Cline%20x1%3D%22256.0%22%20y1%3D%22452.0%22%20x2%3D%22256.0%22%20y2%3D%22414.0%22%20stroke%3D%22%23FFB020%22%20stroke-width%3D%2220%22%20stroke-linecap%3D%22round%22%2F%3E%3Cline%20x1%3D%22158.0%22%20y1%3D%22425.7%22%20x2%3D%22170.0%22%20y2%3D%22405.0%22%20stroke%3D%22%23FFB020%22%20stroke-width%3D%2212%22%20stroke-linecap%3D%22round%22%2F%3E%3Cline%20x1%3D%2286.3%22%20y1%3D%22354.0%22%20x2%3D%22107.0%22%20y2%3D%22342.0%22%20stroke%3D%22%23FFB020%22%20stroke-width%3D%2212%22%20stroke-linecap%3D%22round%22%2F%3E%3Cline%20x1%3D%2260.0%22%20y1%3D%22256.0%22%20x2%3D%2298.0%22%20y2%3D%22256.0%22%20stroke%3D%22%23FFB020%22%20stroke-width%3D%2220%22%20stroke-linecap%3D%22round%22%2F%3E%3Cline%20x1%3D%2286.3%22%20y1%3D%22158.0%22%20x2%3D%22107.0%22%20y2%3D%22170.0%22%20stroke%3D%22%23FFB020%22%20stroke-width%3D%2212%22%20stroke-linecap%3D%22round%22%2F%3E%3Cline%20x1%3D%22158.0%22%20y1%3D%2286.3%22%20x2%3D%22170.0%22%20y2%3D%22107.0%22%20stroke%3D%22%23FFB020%22%20stroke-width%3D%2212%22%20stroke-linecap%3D%22round%22%2F%3E%0A%3Cline%20x1%3D%22256%22%20y1%3D%22256%22%20x2%3D%22352%22%20y2%3D%22160%22%20stroke%3D%22%23E9EEF6%22%20stroke-width%3D%2224%22%20stroke-linecap%3D%22round%22%2F%3E%0A%3Ccircle%20cx%3D%22256%22%20cy%3D%22256%22%20r%3D%2226%22%20fill%3D%22%23FFB020%22%2F%3E%0A%3C%2Fsvg%3E">
+<link rel="manifest" href='data:application/manifest+json,{"name":"TachoStróż","short_name":"TachoStróż","display":"standalone","background_color":"%230A0D12","theme_color":"%230A0D12","icons":[{"src":"data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%20512%20512%22%3E%0A%3Crect%20width%3D%22512%22%20height%3D%22512%22%20fill%3D%22%230A0D12%22%2F%3E%0A%3Ccircle%20cx%3D%22256%22%20cy%3D%22256%22%20r%3D%22222%22%20fill%3D%22none%22%20stroke%3D%22%231E2938%22%20stroke-width%3D%2220%22%2F%3E%0A%3Cline%20x1%3D%22256.0%22%20y1%3D%2260.0%22%20x2%3D%22256.0%22%20y2%3D%2298.0%22%20stroke%3D%22%23FFB020%22%20stroke-width%3D%2220%22%20stroke-linecap%3D%22round%22%2F%3E%3Cline%20x1%3D%22354.0%22%20y1%3D%2286.3%22%20x2%3D%22342.0%22%20y2%3D%22107.0%22%20stroke%3D%22%23FFB020%22%20stroke-width%3D%2212%22%20stroke-linecap%3D%22round%22%2F%3E%3Cline%20x1%3D%22425.7%22%20y1%3D%22158.0%22%20x2%3D%22405.0%22%20y2%3D%22170.0%22%20stroke%3D%22%23FFB020%22%20stroke-width%3D%2212%22%20stroke-linecap%3D%22round%22%2F%3E%3Cline%20x1%3D%22452.0%22%20y1%3D%22256.0%22%20x2%3D%22414.0%22%20y2%3D%22256.0%22%20stroke%3D%22%23FFB020%22%20stroke-width%3D%2220%22%20stroke-linecap%3D%22round%22%2F%3E%3Cline%20x1%3D%22425.7%22%20y1%3D%22354.0%22%20x2%3D%22405.0%22%20y2%3D%22342.0%22%20stroke%3D%22%23FFB020%22%20stroke-width%3D%2212%22%20stroke-linecap%3D%22round%22%2F%3E%3Cline%20x1%3D%22354.0%22%20y1%3D%22425.7%22%20x2%3D%22342.0%22%20y2%3D%22405.0%22%20stroke%3D%22%23FFB020%22%20stroke-width%3D%2212%22%20stroke-linecap%3D%22round%22%2F%3E%3Cline%20x1%3D%22256.0%22%20y1%3D%22452.0%22%20x2%3D%22256.0%22%20y2%3D%22414.0%22%20stroke%3D%22%23FFB020%22%20stroke-width%3D%2220%22%20stroke-linecap%3D%22round%22%2F%3E%3Cline%20x1%3D%22158.0%22%20y1%3D%22425.7%22%20x2%3D%22170.0%22%20y2%3D%22405.0%22%20stroke%3D%22%23FFB020%22%20stroke-width%3D%2212%22%20stroke-linecap%3D%22round%22%2F%3E%3Cline%20x1%3D%2286.3%22%20y1%3D%22354.0%22%20x2%3D%22107.0%22%20y2%3D%22342.0%22%20stroke%3D%22%23FFB020%22%20stroke-width%3D%2212%22%20stroke-linecap%3D%22round%22%2F%3E%3Cline%20x1%3D%2260.0%22%20y1%3D%22256.0%22%20x2%3D%2298.0%22%20y2%3D%22256.0%22%20stroke%3D%22%23FFB020%22%20stroke-width%3D%2220%22%20stroke-linecap%3D%22round%22%2F%3E%3Cline%20x1%3D%2286.3%22%20y1%3D%22158.0%22%20x2%3D%22107.0%22%20y2%3D%22170.0%22%20stroke%3D%22%23FFB020%22%20stroke-width%3D%2212%22%20stroke-linecap%3D%22round%22%2F%3E%3Cline%20x1%3D%22158.0%22%20y1%3D%2286.3%22%20x2%3D%22170.0%22%20y2%3D%22107.0%22%20stroke%3D%22%23FFB020%22%20stroke-width%3D%2212%22%20stroke-linecap%3D%22round%22%2F%3E%0A%3Cline%20x1%3D%22256%22%20y1%3D%22256%22%20x2%3D%22352%22%20y2%3D%22160%22%20stroke%3D%22%23E9EEF6%22%20stroke-width%3D%2224%22%20stroke-linecap%3D%22round%22%2F%3E%0A%3Ccircle%20cx%3D%22256%22%20cy%3D%22256%22%20r%3D%2226%22%20fill%3D%22%23FFB020%22%2F%3E%0A%3C%2Fsvg%3E","sizes":"any","type":"image/svg+xml"}]}'>
+<style>
+:root{
+  --bg:#0A0D12; --panel:#131923; --panel2:#1B2331; --line:#232D3D;
+  --ink:#E9EEF6; --mut:#8592A6; --dim:#5A667B;
+  --amber:#FFB020; --green:#34D07C; --red:#FF5A5A; --yellow:#FFD466; --blue:#57B8D8;
+  --c-drive:#FFB020; --c-work:#8A97AD; --c-poa:#57B8D8; --c-rest:#34D07C;
+  --mono:ui-monospace,'SF Mono','Roboto Mono',Menlo,Consolas,monospace;
+  --sans:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
+  --rad:14px;
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html{font-size:16px}
+body{background:var(--bg);color:var(--ink);font-family:var(--sans);min-height:100vh;
+  padding-bottom:calc(74px + env(safe-area-inset-bottom));}
+button{font-family:inherit;color:inherit;background:none;border:none;cursor:pointer}
+input,select,textarea{font-family:inherit;font-size:1rem;color:var(--ink);background:var(--panel2);
+  border:1px solid var(--line);border-radius:10px;padding:10px 12px;width:100%}
+input[type=datetime-local]{color-scheme:dark}
+h1,h2,h3{font-weight:700;letter-spacing:-.01em}
+.lbl{font-size:.68rem;text-transform:uppercase;letter-spacing:.09em;color:var(--mut);font-weight:600}
+.mono{font-family:var(--mono);font-variant-numeric:tabular-nums}
+
+/* ---------- Header ---------- */
+header{position:sticky;top:0;z-index:20;background:rgba(10,13,18,.92);backdrop-filter:blur(12px);
+  -webkit-backdrop-filter:blur(12px);border-bottom:1px solid var(--line);
+  padding:calc(10px + env(safe-area-inset-top)) 16px 10px;display:flex;align-items:center;gap:10px}
+header .logo{width:26px;height:26px;flex:none}
+header h1{font-size:1.05rem}
+header h1 span{color:var(--amber)}
+#clock{margin-left:auto;font-family:var(--mono);font-variant-numeric:tabular-nums;color:var(--amber);font-size:1rem}
+
+main{padding:16px 16px 8px;max-width:560px;margin:0 auto}
+.tab{display:none}
+.tab.active{display:block;animation:fade .18s ease}
+@keyframes fade{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+
+/* ---------- Karty ---------- */
+.card{background:var(--panel);border:1px solid var(--line);border-radius:var(--rad);
+  padding:14px 15px;margin-bottom:12px}
+.card h3{font-size:.95rem;margin-bottom:10px;display:flex;align-items:center;gap:8px}
+.card h3 .dot{width:8px;height:8px;border-radius:50%;flex:none}
+.row{display:flex;justify-content:space-between;align-items:baseline;gap:10px;padding:5px 0}
+.row + .row{border-top:1px dashed #1C2534}
+.row .k{color:var(--mut);font-size:.86rem}
+.row .v{font-family:var(--mono);font-variant-numeric:tabular-nums;font-size:.95rem;text-align:right}
+.v.ok{color:var(--green)} .v.warn{color:var(--yellow)} .v.bad{color:var(--red)} .v.amb{color:var(--amber)}
+
+/* ---------- Tarcza (signature) ---------- */
+.dial-wrap{position:relative;width:236px;height:236px;margin:6px auto 2px}
+.dial-wrap svg{width:100%;height:100%;display:block}
+.dial-center{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px}
+#contTime{font-family:var(--mono);font-variant-numeric:tabular-nums;font-size:2.6rem;font-weight:600;letter-spacing:-.02em}
+#contTime.bad{color:var(--red)}
+.dial-sub{font-family:var(--mono);font-size:.82rem;color:var(--mut)}
+#contHint{text-align:center;color:var(--mut);font-size:.85rem;margin:2px 0 14px;min-height:1.2em}
+#contHint b{color:var(--ink);font-family:var(--mono);font-weight:600}
+
+/* ---------- Przyciski aktywności ---------- */
+.acts{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px}
+.act{border-radius:var(--rad);padding:14px 8px 12px;border:1px solid var(--line);background:var(--panel);
+  display:flex;flex-direction:column;align-items:center;gap:6px;font-weight:600;font-size:.92rem;
+  transition:transform .06s ease}
+.act:active{transform:scale(.97)}
+.act svg{width:26px;height:26px}
+.act.on{border-color:currentColor;box-shadow:inset 0 0 0 1px currentColor}
+.act.on::after{content:'TRWA';font-size:.6rem;letter-spacing:.14em;font-weight:700;opacity:.9}
+.act-drive{color:var(--c-drive)} .act-work{color:var(--c-work)}
+.act-poa{color:var(--c-poa)} .act-rest{color:var(--c-rest)}
+.act .t{color:var(--ink)}
+.stop{grid-column:1/-1;background:var(--panel2);border:1px solid var(--line);border-radius:var(--rad);
+  padding:13px;font-weight:700;letter-spacing:.06em;color:var(--mut)}
+.stop.armed{color:var(--red);border-color:#4A2430}
+#nowBanner{display:none;align-items:center;gap:10px;background:var(--panel2);border:1px solid var(--line);
+  border-radius:var(--rad);padding:10px 14px;margin-bottom:12px}
+#nowBanner .pulse{width:9px;height:9px;border-radius:50%;flex:none;animation:pl 1.6s infinite}
+@keyframes pl{0%,100%{opacity:1}50%{opacity:.25}}
+#nowBanner .info{flex:1;font-size:.9rem}
+#nowBanner .tm{font-family:var(--mono);font-variant-numeric:tabular-nums;font-size:1.15rem;font-weight:600}
+
+/* ---------- Paski postępu ---------- */
+.bar{height:9px;background:#0E1420;border:1px solid var(--line);border-radius:99px;overflow:hidden;position:relative;margin:7px 0 3px}
+.bar i{display:block;height:100%;border-radius:99px;background:var(--amber);transition:width .4s ease}
+.bar i.over{background:var(--red)}
+.bar .mark{position:absolute;top:-2px;bottom:-2px;width:2px;background:var(--mut);opacity:.7}
+.bar-cap{display:flex;justify-content:space-between;font-size:.72rem;color:var(--mut);font-family:var(--mono)}
+
+/* ---------- Timeline doby ---------- */
+#dayline{display:flex;height:26px;border-radius:8px;overflow:hidden;border:1px solid var(--line);background:#0E1420}
+#dayline i{height:100%}
+.legend{display:flex;flex-wrap:wrap;gap:12px;margin-top:8px;font-size:.72rem;color:var(--mut)}
+.legend b{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:5px;vertical-align:-1px}
+
+/* ---------- Dziennik ---------- */
+.day-h{display:flex;justify-content:space-between;align-items:baseline;margin:16px 2px 8px}
+.day-h .d{font-weight:700;font-size:.95rem}
+.day-h .s{font-family:var(--mono);font-size:.78rem;color:var(--mut)}
+.ev{display:flex;align-items:center;gap:12px;background:var(--panel);border:1px solid var(--line);
+  border-radius:12px;padding:11px 13px;margin-bottom:8px}
+.ev .ic{width:34px;height:34px;border-radius:9px;display:flex;align-items:center;justify-content:center;flex:none}
+.ev .ic svg{width:19px;height:19px}
+.ev .mid{flex:1;min-width:0}
+.ev .tt{font-weight:600;font-size:.92rem}
+.ev .sub{font-size:.78rem;color:var(--mut);font-family:var(--mono)}
+.ev .dur{font-family:var(--mono);font-variant-numeric:tabular-nums;font-weight:600}
+.ev .note{font-size:.78rem;color:var(--mut);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.btn{display:block;width:100%;text-align:center;background:var(--amber);color:#141005;font-weight:700;
+  border-radius:12px;padding:13px;font-size:.95rem}
+.btn.ghost{background:var(--panel2);color:var(--ink);border:1px solid var(--line)}
+.btn.danger{background:transparent;color:var(--red);border:1px solid #4A2430}
+.btn:active{opacity:.85}
+.btn + .btn{margin-top:10px}
+
+/* ---------- Analiza ---------- */
+.viol{border-left:3px solid var(--red);background:var(--panel);border-radius:0 12px 12px 0;
+  padding:10px 13px;margin-bottom:9px;font-size:.88rem}
+.viol.warn{border-left-color:var(--yellow)} .viol.info{border-left-color:var(--blue)}
+.viol .when{font-family:var(--mono);font-size:.72rem;color:var(--mut);margin-top:3px}
+.empty{color:var(--mut);text-align:center;padding:26px 10px;font-size:.9rem}
+.empty .big{font-size:2rem;margin-bottom:6px}
+table.mini{width:100%;border-collapse:collapse;font-size:.85rem}
+table.mini th{text-align:left;color:var(--mut);font-weight:600;font-size:.7rem;text-transform:uppercase;
+  letter-spacing:.07em;padding:4px 6px;border-bottom:1px solid var(--line)}
+table.mini td{padding:6px;border-bottom:1px solid #17202E;font-family:var(--mono);font-variant-numeric:tabular-nums}
+table.mini td:first-child{font-family:var(--sans)}
+
+/* ---------- Poradnik ---------- */
+details{background:var(--panel);border:1px solid var(--line);border-radius:var(--rad);margin-bottom:10px;overflow:hidden}
+summary{list-style:none;padding:14px 15px;font-weight:700;font-size:.95rem;display:flex;align-items:center;gap:10px}
+summary::-webkit-details-marker{display:none}
+summary .chev{margin-left:auto;transition:transform .2s;color:var(--mut)}
+details[open] summary .chev{transform:rotate(90deg)}
+details .body{padding:2px 15px 15px;font-size:.9rem;line-height:1.55;color:#C9D2E0}
+details .body p{margin:8px 0}
+details .body ul,details .body ol{margin:8px 0 8px 18px}
+details .body li{margin:5px 0}
+details .body table{width:100%;border-collapse:collapse;font-size:.85rem;margin:8px 0}
+details .body th{background:var(--panel2);text-align:left;padding:7px 9px;font-size:.72rem;text-transform:uppercase;letter-spacing:.06em;color:var(--mut)}
+details .body td{padding:7px 9px;border-bottom:1px solid #17202E}
+details .body b,strong{color:var(--ink)}
+details .body .tip{background:#12200F00;border:1px dashed #2C4A28;border-left:3px solid var(--green);
+  border-radius:0 10px 10px 0;padding:9px 12px;margin:10px 0}
+details .body .warn2{border:1px dashed #4A3B1E;border-left:3px solid var(--amber);border-radius:0 10px 10px 0;padding:9px 12px;margin:10px 0}
+details .body code{font-family:var(--mono);background:var(--panel2);border-radius:5px;padding:1px 6px;font-size:.85em}
+kbd{font-family:var(--mono);background:var(--panel2);border:1px solid var(--line);border-bottom-width:2px;
+  border-radius:6px;padding:1px 7px;font-size:.82em}
+
+/* ---------- Ustawienia / backup ---------- */
+.switch{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:4px 0}
+.switch .txt{font-size:.9rem}.switch .txt small{display:block;color:var(--mut);font-size:.76rem;margin-top:2px}
+.sw{width:48px;height:28px;border-radius:99px;background:var(--panel2);border:1px solid var(--line);position:relative;flex:none;transition:background .2s}
+.sw::after{content:'';position:absolute;top:3px;left:3px;width:20px;height:20px;border-radius:50%;background:var(--mut);transition:all .2s}
+.sw.on{background:#2A3C22;border-color:#33502B}.sw.on::after{left:23px;background:var(--green)}
+
+/* ---------- Bottom nav ---------- */
+nav{position:fixed;bottom:0;left:0;right:0;z-index:30;background:rgba(13,17,24,.94);
+  backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border-top:1px solid var(--line);
+  display:flex;padding:6px 4px calc(6px + env(safe-area-inset-bottom))}
+nav button{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;padding:6px 2px;
+  color:var(--mut);font-size:.62rem;font-weight:600;letter-spacing:.03em;position:relative}
+nav button svg{width:22px;height:22px}
+nav button.active{color:var(--amber)}
+nav .badge{position:absolute;top:1px;right:calc(50% - 20px);min-width:16px;height:16px;border-radius:9px;
+  background:var(--red);color:#fff;font-size:.62rem;line-height:16px;padding:0 4px;font-weight:700}
+
+/* ---------- Modal ---------- */
+#ovl{position:fixed;inset:0;background:rgba(4,6,10,.7);z-index:40;display:none;align-items:flex-end;justify-content:center}
+#ovl.show{display:flex}
+#modal{background:var(--panel);border:1px solid var(--line);border-radius:18px 18px 0 0;width:100%;max-width:560px;
+  padding:18px 16px calc(18px + env(safe-area-inset-bottom));animation:up .22s ease}
+@keyframes up{from{transform:translateY(30px);opacity:0}to{transform:none;opacity:1}}
+#modal h3{margin-bottom:14px}
+.fld{margin-bottom:12px}.fld label{display:block;margin-bottom:6px}
+.seg{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
+.seg button{border:1px solid var(--line);border-radius:10px;padding:9px 4px;font-size:.78rem;font-weight:600;color:var(--mut);display:flex;flex-direction:column;align-items:center;gap:4px}
+.seg button svg{width:18px;height:18px}
+.seg button.sel{color:var(--ink);border-color:currentColor}
+.seg button.sel.s-drive{color:var(--c-drive)}.seg button.sel.s-work{color:var(--c-work)}
+.seg button.sel.s-poa{color:var(--c-poa)}.seg button.sel.s-rest{color:var(--c-rest)}
+.seg button.sel .t{color:var(--ink)}
+.chk{display:flex;align-items:center;gap:9px;font-size:.88rem;color:var(--mut);margin-top:7px}
+.chk input{width:auto}
+.mrow{display:flex;gap:10px;margin-top:6px}
+.mrow .btn{margin-top:0}
+#toast{position:fixed;left:50%;bottom:calc(90px + env(safe-area-inset-bottom));transform:translateX(-50%) translateY(20px);
+  background:var(--panel2);border:1px solid var(--line);color:var(--ink);padding:10px 18px;border-radius:99px;
+  font-size:.86rem;opacity:0;pointer-events:none;transition:all .25s;z-index:50;white-space:nowrap}
+#toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+.hint-inline{font-size:.78rem;color:var(--mut);margin-top:8px;line-height:1.5}
+</style>
+</head>
+<body>
+
+<header>
+  <svg class="logo" viewBox="0 0 512 512"><rect width="512" height="512" rx="112" fill="#131923"/><circle cx="256" cy="256" r="176" fill="none" stroke="#FFB020" stroke-width="30"/><line x1="256" y1="256" x2="352" y2="160" stroke="#E9EEF6" stroke-width="28" stroke-linecap="round"/><circle cx="256" cy="256" r="30" fill="#FFB020"/></svg>
+  <h1>Tacho<span>Stróż</span></h1>
+  <div id="clock" class="mono">--:--:--</div>
+</header>
+
+<main>
+
+<!-- ============ DZIŚ ============ -->
+<section id="tab-today" class="tab active">
+  <div class="dial-wrap">
+    <svg id="dial" viewBox="0 0 200 200"></svg>
+    <div class="dial-center">
+      <div id="contTime" class="mono">0:00</div>
+      <div class="dial-sub">jazda ciągła / 4:30</div>
+    </div>
+  </div>
+  <div id="contHint"></div>
+
+  <div id="nowBanner">
+    <span class="pulse"></span>
+    <div class="info"><span id="nowLabel"></span><br><span class="lbl" id="nowSince"></span></div>
+    <div class="tm mono" id="nowDur"></div>
+  </div>
+
+  <div class="acts">
+    <button class="act act-drive" data-act="drive"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 3v4M12 12l5.5 3M3.5 10.5 7.4 12M20.5 10.5 16.6 12"/></svg><span class="t">Jazda</span></button>
+    <button class="act act-work" data-act="work"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m14 6 4 4-9.5 9.5L4 20l.5-4.5L14 6zM12.5 7.5l4 4M14 6l2-2c.8-.8 2.2-.8 3 0l1 1c.8.8.8 2.2 0 3l-2 2"/></svg><span class="t">Inna praca</span></button>
+    <button class="act act-poa" data-act="poa"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="4" width="16" height="16" rx="2"/><path d="M12 8v4l2.5 2.5"/></svg><span class="t">Dyspozycja</span></button>
+    <button class="act act-rest" data-act="rest"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 18v-6h13a4 4 0 0 1 4 4v2M3 18h18M3 18v2M21 18v2M3 12V7"/><circle cx="7" cy="9.5" r="1.6"/></svg><span class="t">Odpoczynek</span></button>
+    <button class="stop" id="stopBtn">■ ZAKOŃCZ BIEŻĄCĄ AKTYWNOŚĆ</button>
+  </div>
+
+  <div id="assist"></div>
+
+  <div class="card">
+    <h3>Bieżąca doba pracownicza <span class="lbl" id="daylineFrom" style="margin-left:auto"></span></h3>
+    <div id="dayline"></div>
+    <div class="legend">
+      <span><b style="background:var(--c-drive)"></b>jazda</span>
+      <span><b style="background:var(--c-work)"></b>inna praca</span>
+      <span><b style="background:var(--c-poa)"></b>dyspozycja</span>
+      <span><b style="background:var(--c-rest)"></b>odpoczynek</span>
+    </div>
+  </div>
+</section>
+
+<!-- ============ DZIENNIK ============ -->
+<section id="tab-log" class="tab">
+  <button class="btn" id="addBtn">＋ Dodaj wpis ręcznie</button>
+  <p class="hint-inline">Wpisuj tylko aktywności — <b>luki między wpisami aplikacja traktuje jako odpoczynek</b> (nocy i weekendów nie musisz wpisywać). Dotknij wpis, aby go edytować.</p>
+  <div id="logList"></div>
+</section>
+
+<!-- ============ ANALIZA ============ -->
+<section id="tab-analysis" class="tab">
+  <div id="anBody"></div>
+</section>
+
+<!-- ============ PORADNIK ============ -->
+<section id="tab-guide" class="tab" >
+  <div id="guideBody"></div>
+</section>
+
+<!-- ============ BACKUP ============ -->
+<section id="tab-backup" class="tab">
+  <div class="card">
+    <h3>Kopia zapasowa</h3>
+    <p class="hint-inline" style="margin:0 0 12px">Dane zapisują się automatycznie w pamięci tej przeglądarki (localStorage). Regularnie eksportuj plik JSON — to Twoje pełne archiwum, tak jak w aplikacji treningowej.</p>
+    <button class="btn" id="expBtn">⬇ Eksportuj dane (JSON)</button>
+    <button class="btn ghost" id="impBtn">⬆ Importuj z pliku…</button>
+    <input type="file" id="impFile" accept="application/json" style="display:none">
+    <div class="chk" style="margin-top:10px"><input type="checkbox" id="impMerge"><label for="impMerge">Scal z obecnymi danymi (bez zaznaczenia: zastąpi wszystko)</label></div>
+    <div class="row" style="margin-top:10px"><span class="k">Wpisów w bazie</span><span class="v" id="statCount">0</span></div>
+    <div class="row"><span class="k">Zakres danych</span><span class="v" id="statRange">—</span></div>
+  </div>
+  <div class="card">
+    <h3>Ustawienia analizy</h3>
+    <div class="switch">
+      <div class="txt">Transport międzynarodowy<small>Dopuszcza 2 skrócone odpoczynki tygodniowe z rzędu (poza krajem bazy) — zamiast naruszenia pokaże ostrzeżenie z warunkami.</small></div>
+      <div class="sw" id="swIntl"></div>
+    </div>
+  </div>
+  <div class="card">
+    <h3>Instalacja na iPhone</h3>
+    <p class="hint-inline" style="margin:0">Safari → <kbd>Udostępnij</kbd> → <kbd>Do ekranu początkowego</kbd>. Aplikacja uruchomi się pełnoekranowo z ikoną tarczy tachografu i będzie działać offline.</p>
+  </div>
+  <div class="card" style="border-color:#4A2430">
+    <h3 style="color:var(--red)">Strefa ryzyka</h3>
+    <button class="btn danger" id="wipeBtn">Usuń wszystkie dane</button>
+  </div>
+</section>
+
+</main>
+
+<nav>
+  <button data-tab="today" class="active"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3.5 2"/></svg>Dziś</button>
+  <button data-tab="log"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 4h11l3 3v13H5zM9 4v4h7"/><path d="M8 13h8M8 17h5"/></svg>Dziennik</button>
+  <button data-tab="analysis"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3 2.5 20h19L12 3z"/><path d="M12 10v4M12 17.2v.1"/></svg>Analiza<span class="badge" id="vBadge" style="display:none"></span></button>
+  <button data-tab="guide"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 5c2.5-1.5 5.5-1.5 8 0 2.5-1.5 5.5-1.5 8 0v14c-2.5-1.5-5.5-1.5-8 0-2.5-1.5-5.5-1.5-8 0V5zM12 5v14"/></svg>Poradnik</button>
+  <button data-tab="backup"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3v10m0 0 3.5-3.5M12 13 8.5 9.5"/><path d="M4 15v3a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-3"/></svg>Backup</button>
+</nav>
+
+<div id="ovl"><div id="modal">
+  <h3 id="mTitle">Wpis</h3>
+  <div class="fld"><label class="lbl">Rodzaj aktywności</label>
+    <div class="seg" id="mSeg">
+      <button data-t="drive" class="s-drive"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 3v4M12 12l5.5 3M3.5 10.5 7.4 12M20.5 10.5 16.6 12"/></svg><span class="t">Jazda</span></button>
+      <button data-t="work" class="s-work"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m14 6 4 4-9.5 9.5L4 20l.5-4.5L14 6z"/></svg><span class="t">Praca</span></button>
+      <button data-t="poa" class="s-poa"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="4" width="16" height="16" rx="2"/><path d="M12 8v4l2.5 2.5"/></svg><span class="t">Dysp.</span></button>
+      <button data-t="rest" class="s-rest"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 18v-6h13a4 4 0 0 1 4 4v2M3 18h18"/><circle cx="7" cy="9.5" r="1.6"/></svg><span class="t">Odpocz.</span></button>
+    </div></div>
+  <div class="fld"><label class="lbl" for="mStart">Początek</label><input type="datetime-local" id="mStart"></div>
+  <div class="fld"><label class="lbl" for="mEnd">Koniec</label><input type="datetime-local" id="mEnd">
+    <div class="chk"><input type="checkbox" id="mOpen"><label for="mOpen">Trwa nadal (bez końca)</label></div></div>
+  <div class="fld"><label class="lbl" for="mNote">Notatka (np. odstępstwo art. 12, prom)</label><input type="text" id="mNote" placeholder="opcjonalnie"></div>
+  <div class="mrow"><button class="btn ghost" id="mCancel">Anuluj</button><button class="btn" id="mSave">Zapisz</button></div>
+  <button class="btn danger" id="mDel" style="margin-top:10px">Usuń wpis</button>
+</div></div>
+
+<div id="toast"></div>
+
+<script>
+'use strict';
+/* ===== TachoStróż — silnik analizy (Rozp. 561/2006) =====
+   Czas w minutach (int). Event: {id, type:'drive'|'work'|'poa'|'rest', start:ms, end:ms|null, note}
+   Luki między zdarzeniami traktowane jako odpoczynek (implicit rest).
+*/
+const MIN = 60000;
+const L = {
+  CONT_DRIVE: 270,        // 4h30 jazdy ciągłej
+  BREAK_FULL: 45,
+  BREAK_P1: 15, BREAK_P2: 30,
+  DAILY_DRIVE: 540,       // 9h
+  DAILY_DRIVE_EXT: 600,   // 10h
+  EXT_PER_WEEK: 2,
+  DAILY_REST_REG: 660,    // 11h
+  DAILY_REST_RED: 540,    // 9h
+  SPLIT_P1: 180,          // 3h
+  SPLIT_P2: 540,          // 9h
+  RED_BETWEEN_WEEKLY: 3,
+  WEEK_DRIVE: 3360,       // 56h
+  BIWEEK_DRIVE: 5400,     // 90h
+  WEEKLY_REST_REG: 2700,  // 45h
+  WEEKLY_REST_RED: 1440,  // 24h
+  WEEKLY_GAP: 8640,       // 144h = 6x24h
+  SHIFT_WINDOW: 1440      // 24h
+};
+
+const mins = (a,b)=>Math.round((b-a)/MIN);
+const fmtHM = m => { const s=m<0?'-':''; m=Math.abs(Math.round(m)); return s+Math.floor(m/60)+'h '+String(m%60).padStart(2,'0')+'m'; };
+const fmtT = ms => { const d=new Date(ms); return String(d.getDate()).padStart(2,'0')+'.'+String(d.getMonth()+1).padStart(2,'0')+' '+String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0'); };
+
+// ISO tydzień: poniedziałek 00:00 lokalnie
+function weekStart(ms){ const d=new Date(ms); d.setHours(0,0,0,0); const dow=(d.getDay()+6)%7; d.setDate(d.getDate()-dow); return d.getTime(); }
+function weekKey(ms){ return weekStart(ms); }
+function weekLabel(ws){ const d=new Date(ws); return String(d.getDate()).padStart(2,'0')+'.'+String(d.getMonth()+1).padStart(2,'0'); }
+
+/* --- Oś czasu: sortowanie, domykanie otwartych, wypełnianie luk odpoczynkiem --- */
+function buildTimeline(events, now){
+  const evs = events.filter(e=>e.start!=null).map(e=>({...e, end: e.end==null? now : e.end, open: e.end==null}))
+    .filter(e=>e.end>e.start).sort((a,b)=>a.start-b.start);
+  const segs=[];
+  for(const e of evs){
+    const prev = segs[segs.length-1];
+    let s = e.start;
+    if(prev && s < prev.end) s = prev.end;            // przycinamy nakładki (starsze ma priorytet)
+    if(s >= e.end) continue;
+    if(prev && s > prev.end) segs.push({type:'rest', start:prev.end, end:s, implicit:true});
+    segs.push({type:e.type, start:s, end:e.end, id:e.id, open:e.open, note:e.note});
+  }
+  // scal sąsiadujące odpoczynki
+  const out=[];
+  for(const s of segs){
+    const p=out[out.length-1];
+    if(p && p.type==='rest' && s.type==='rest'){ p.end=s.end; p.implicit=p.implicit&&s.implicit; p.open=s.open; }
+    else out.push({...s});
+  }
+  return out;
+}
+
+/* --- Główna analiza --- */
+function analyze(events, now, settings={}){
+  const segs = buildTimeline(events, now);
+  const V=[]; // {sev:'viol'|'warn'|'info', code, msg, at}
+  const add=(sev,code,msg,at)=>V.push({sev,code,msg,at});
+
+  const R = {
+    segs, violations:V,
+    contDrive:0, partial15:false, breakDeadline:null,
+    period:{start:null, drive:0, deadlineFull:null, deadlineRed:null, extendedToday:false},
+    reducedDailyUsed:0, extUsedThisWeek:0,
+    weekDrive:{}, weeklyRests:[], compensations:[],
+    lastWeeklyEnd:null, nextWeeklyLatestStart:null,
+    lastQualRestEnd:null, currentSeg:null, dayDriveHistory:[]
+  };
+  if(!segs.length) return R;
+
+  /* ---------- 1) Jazda ciągła i przerwy ---------- */
+  let cd=0, p15=false, contViolated=false;
+  for(const s of segs){
+    const d=mins(s.start,s.end);
+    if(s.type==='drive'){
+      cd+=d;
+      if(cd>L.CONT_DRIVE && !contViolated){
+        add('viol','CONT',`Jazda ciągła przekroczona: ${fmtHM(cd)} bez wymaganej przerwy 45 min (limit 4h 30m).`, s.end);
+        contViolated=true;
+      }
+    } else if(s.type==='rest'){
+      if(d>=L.BREAK_FULL || (d>=L.BREAK_P2 && p15)){ cd=0; p15=false; contViolated=false; }
+      else if(d>=L.BREAK_P1){ p15=true; }
+      // odpoczynek dobowy/tygodniowy zawsze zeruje (>=45 i tak łapie)
+    }
+    // work/poa: nie zeruje i nie dolicza
+  }
+  R.contDrive=cd; R.partial15=p15;
+
+  /* ---------- 2) Doby pracownicze i odpoczynki dobowe ---------- */
+  // klasyfikacja odpoczynków
+  const restsAll = segs.filter(s=>s.type==='rest').map(s=>({...s, d:mins(s.start,s.end)}));
+  const weekly = restsAll.filter(r=>r.d>=L.WEEKLY_REST_RED);
+
+  let pStart = null; // start bieżącej doby (koniec ostatniego kwalifikowanego odpoczynku)
+  // start pierwszej doby: początek pierwszej aktywności (nie-odpoczynkowej)
+  const firstAct = segs.find(s=>s.type!=='rest');
+  pStart = firstAct ? firstAct.start : segs[0].start;
+
+  let splitP1=false, dayDrive=0, extWeek={}, reducedSinceWeekly=0, extendedToday=false;
+  const closeDay=(endRest, kind)=>{
+    R.dayDriveHistory.push({start:pStart, end:endRest.start, drive:dayDrive, kind});
+    // limity jazdy dziennej
+    const wk=weekKey(pStart);
+    if(dayDrive>L.DAILY_DRIVE_EXT){
+      add('viol','DDRIVE',`Jazda dzienna ${fmtHM(dayDrive)} — przekroczony nawet limit 10h (doba od ${fmtT(pStart)}).`, endRest.start);
+      extWeek[wk]=(extWeek[wk]||0)+1;
+    } else if(dayDrive>L.DAILY_DRIVE){
+      extWeek[wk]=(extWeek[wk]||0)+1;
+      if(extWeek[wk]>L.EXT_PER_WEEK) add('viol','EXT',`Trzecie wydłużenie jazdy do 10h w tygodniu ${weekLabel(wk)} — dozwolone są 2.`, endRest.start);
+      else add('info','EXTUSE',`Wykorzystano wydłużenie jazdy do 10h (${extWeek[wk]}/2 w tygodniu od ${weekLabel(wk)}): ${fmtHM(dayDrive)}.`, endRest.start);
+    }
+    pStart=endRest.end; dayDrive=0; splitP1=false;
+  };
+
+  for(const s of segs){
+    const d=mins(s.start,s.end);
+    if(s.type==='drive'){ dayDrive+=d; }
+    if(s.type!=='rest') continue;
+    if(s.start<pStart) continue;
+
+    const deadline=pStart+L.SHIFT_WINDOW*MIN;
+    if(d>=L.WEEKLY_REST_RED){                     // tygodniowy — zamyka też dobę
+      if(s.end>deadline && s.start> pStart && mins(pStart, Math.min(s.end,deadline))>0){
+        // sprawdź czy w oknie zmieściło się min 9h/11h tego odpoczynku
+        const inWin = mins(Math.max(s.start,pStart), Math.min(s.end, deadline));
+        if(inWin < (splitP1?L.SPLIT_P2:L.DAILY_REST_RED))
+          add('viol','DREST',`Doba od ${fmtT(pStart)}: w ciągu 24h nie zakończono odpoczynku dobowego (zmieściło się ${fmtHM(Math.max(0,inWin))}).`, deadline);
+      }
+      reducedSinceWeekly=0;
+      closeDay(s,'weekly');
+    } else if(d>=L.SPLIT_P2){                     // >=9h
+      const need = splitP1 ? L.SPLIT_P2 : L.DAILY_REST_RED;
+      if(s.end<=deadline){
+        if(splitP1){ closeDay(s,'split'); }
+        else if(d>=L.DAILY_REST_REG){ closeDay(s,'regular'); }
+        else {
+          reducedSinceWeekly++;
+          if(reducedSinceWeekly>L.RED_BETWEEN_WEEKLY)
+            add('viol','DRED',`Czwarty skrócony odpoczynek dobowy (${fmtHM(d)}) między odpoczynkami tygodniowymi — dozwolone są 3.`, s.start);
+          else
+            add('info','DREDUSE',`Skrócony odpoczynek dobowy ${fmtHM(d)} (${reducedSinceWeekly}/3 od ostatniego tyg.).`, s.start);
+          closeDay(s,'reduced');
+        }
+      } else {
+        const inWin=mins(Math.max(s.start,pStart), Math.min(s.end,deadline));
+        if(inWin>=need){ // zdążył się zmieścić wymagany wymiar w oknie
+          if(splitP1) closeDay(s,'split');
+          else if(inWin>=L.DAILY_REST_REG) closeDay(s,'regular');
+          else { reducedSinceWeekly++; if(reducedSinceWeekly>L.RED_BETWEEN_WEEKLY) add('viol','DRED',`Czwarty skrócony odpoczynek dobowy między tygodniowymi.`, s.start); closeDay(s,'reduced'); }
+        } else {
+          add('viol','DREST',`Doba od ${fmtT(pStart)}: odpoczynek dobowy zakończony po upływie 24h (w oknie tylko ${fmtHM(Math.max(0,inWin))}).`, deadline);
+          closeDay(s,'late');
+        }
+      }
+    } else if(d>=L.SPLIT_P1){ splitP1=true; }
+  }
+  // bieżąca (niedomknięta) doba
+  R.period.start=pStart; R.period.drive=dayDrive;
+  R.period.splitP1=splitP1;
+  const needEnd = splitP1?L.SPLIT_P2:null;
+  R.period.deadlineFull = pStart + (L.SHIFT_WINDOW - (needEnd||L.DAILY_REST_REG))*MIN;
+  R.period.deadlineRed  = pStart + (L.SHIFT_WINDOW - (needEnd||L.DAILY_REST_RED))*MIN;
+  R.reducedDailyUsed=reducedSinceWeekly;
+  if(now > pStart+L.SHIFT_WINDOW*MIN && segs.some(s=>s.type!=='rest'&&s.end>pStart))
+    add('viol','DREST',`Bieżąca doba (od ${fmtT(pStart)}) przekroczyła 24h bez zakończonego odpoczynku dobowego.`, now);
+
+  /* ---------- 3) Jazda tygodniowa i dwutygodniowa ---------- */
+  const wd={};
+  for(const s of segs){ if(s.type!=='drive') continue;
+    let a=s.start;
+    while(a<s.end){ const ws=weekStart(a); const we=ws+7*24*60*MIN; const b=Math.min(s.end,we);
+      wd[ws]=(wd[ws]||0)+mins(a,b); a=b; }
+  }
+  R.weekDrive=wd;
+  const wks=Object.keys(wd).map(Number).sort((a,b)=>a-b);
+  for(const w of wks){
+    if(wd[w]>L.WEEK_DRIVE) add('viol','WDRIVE',`Jazda w tygodniu od ${weekLabel(w)}: ${fmtHM(wd[w])} — limit 56h.`, w);
+  }
+  for(let i=1;i<wks.length;i++){
+    if(wks[i]-wks[i-1]===7*24*60*MIN){
+      const s2=wd[wks[i-1]]+wd[wks[i]];
+      if(s2>L.BIWEEK_DRIVE) add('viol','BIWEEK',`Jazda w 2 tygodniach (${weekLabel(wks[i-1])} + ${weekLabel(wks[i])}): ${fmtHM(s2)} — limit 90h.`, wks[i]);
+    }
+  }
+  R.extUsedThisWeek = extWeek[weekKey(now)]||0;
+
+  /* ---------- 4) Odpoczynki tygodniowe, 6x24, rekompensaty ---------- */
+  const wr = weekly.map(r=>({start:r.start,end:r.end,d:r.d, reduced:r.d<L.WEEKLY_REST_REG, open:r.open}));
+  R.weeklyRests=wr;
+  for(let i=1;i<wr.length;i++){
+    const gap=mins(wr[i-1].end, wr[i].start);
+    if(gap>L.WEEKLY_GAP) add('viol','SIX24',`Odpoczynek tygodniowy rozpoczęty po ${fmtHM(gap)} od zakończenia poprzedniego — max to 144h (6×24h).`, wr[i].start);
+  }
+  if(wr.length){
+    const last=wr[wr.length-1];
+    R.lastWeeklyEnd=last.end;
+    R.nextWeeklyLatestStart=last.end+L.WEEKLY_GAP*MIN;
+    if(!last.open && now>R.nextWeeklyLatestStart && segs.some(s=>s.type!=='rest'&&s.end>last.end))
+      add('viol','SIX24',`Minęło już ${fmtHM(mins(last.end,now))} od końca ostatniego odpoczynku tygodniowego — kolejny należało zacząć do ${fmtT(R.nextWeeklyLatestStart)}.`, now);
+  }
+  // dwa skrócone z rzędu
+  for(let i=1;i<wr.length;i++){
+    if(wr[i].reduced && wr[i-1].reduced){
+      if(settings.international) add('warn','2RED',`Dwa skrócone odpoczynki tygodniowe z rzędu — dozwolone tylko w transporcie międzynarodowym poza krajem bazy; obie rekompensaty oddaj przed kolejnym tyg. odpoczynkiem, dołączone do regularnego 45h.`, wr[i].start);
+      else add('viol','2RED',`Dwa skrócone odpoczynki tygodniowe z rzędu — w 2 kolejnych tygodniach wymagany co najmniej jeden regularny (45h).`, wr[i].start);
+    }
+  }
+  // rekompensaty
+  const comps=[];
+  for(const r of wr){
+    if(!r.reduced || r.open) continue;
+    const owe=L.WEEKLY_REST_REG - r.d;
+    const wkEnd=weekStart(r.start)+7*24*60*MIN;
+    const deadline=wkEnd+3*7*24*60*MIN;   // do końca 3. tygodnia po tygodniu skrócenia
+    // szukaj oddania: pojedynczy odpoczynek z nadwyżką >= owe, po końcu skróconego
+    let paidAt=null;
+    for(const r2 of restsAll){
+      if(r2.start<r.end || r2.open) continue;
+      let base=0;
+      if(r2.d>=L.WEEKLY_REST_REG) base=L.WEEKLY_REST_REG;
+      else if(r2.d>=L.WEEKLY_REST_RED) base=null;               // skrócony tyg. nie może nieść rekompensaty
+      else if(r2.d>=L.DAILY_REST_REG) base=L.DAILY_REST_REG;
+      else if(r2.d>=L.DAILY_REST_RED) base=L.DAILY_REST_RED;    // rekompensata doklejona do min 9h
+      else continue;
+      if(base==null) continue;
+      if(r2.d-base>=owe && r2.end<=deadline){ paidAt=r2.end; break; }
+    }
+    comps.push({owe, from:r.end, deadline, paidAt});
+    if(!paidAt && now>deadline) add('viol','COMP',`Rekompensata ${fmtHM(owe)} za skrócony tyg. odpoczynek (${fmtT(r.start)}) nieoddana do ${fmtT(deadline)}.`, deadline);
+    else if(!paidAt) add('info','COMP',`Do oddania rekompensata ${fmtHM(owe)} (jednym blokiem, doklejona do odpoczynku ≥9h) do ${fmtT(deadline)}.`, deadline);
+  }
+  R.compensations=comps;
+
+  /* ---------- 5) Stan bieżący ---------- */
+  const lastSeg=segs[segs.length-1];
+  R.currentSeg = lastSeg && lastSeg.open ? lastSeg : null;
+  R.breakDeadline = now + (L.CONT_DRIVE - cd)*MIN;
+  R.dayDrive=dayDrive;
+  R.extAvailable = (extWeek[weekKey(now)]||0) < L.EXT_PER_WEEK;
+  R.dayDriveLimit = R.extAvailable ? L.DAILY_DRIVE_EXT : L.DAILY_DRIVE;
+  R.redAvailable = reducedSinceWeekly < L.RED_BETWEEN_WEEKLY;
+
+  return R;
+}
+
+
+/* ================= STORE ================= */
+const KEY='tachostroz_v1';
+let state={events:[],settings:{international:false}};
+function load(){ try{const r=localStorage.getItem(KEY); if(r){const p=JSON.parse(r); if(Array.isArray(p.events)) state=Object.assign({events:[],settings:{international:false}},p);} }catch(e){} }
+function save(){ localStorage.setItem(KEY,JSON.stringify(state)); }
+const uid=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,7);
+const nowMin=()=>{const d=new Date();d.setSeconds(0,0);return d.getTime();};
+
+const TYPES={
+  drive:{name:'Jazda',color:'var(--c-drive)',hex:'#FFB020'},
+  work:{name:'Inna praca',color:'var(--c-work)',hex:'#8A97AD'},
+  poa:{name:'Dyspozycja',color:'var(--c-poa)',hex:'#57B8D8'},
+  rest:{name:'Odpoczynek',color:'var(--c-rest)',hex:'#34D07C'}
+};
+const ICONS={
+  drive:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 3v4M12 12l5.5 3M3.5 10.5 7.4 12M20.5 10.5 16.6 12"/></svg>',
+  work:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m14 6 4 4-9.5 9.5L4 20l.5-4.5L14 6z"/></svg>',
+  poa:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="4" width="16" height="16" rx="2"/><path d="M12 8v4l2.5 2.5"/></svg>',
+  rest:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 18v-6h13a4 4 0 0 1 4 4v2M3 18h18"/><circle cx="7" cy="9.5" r="1.6"/></svg>'
+};
+const pad=n=>String(n).padStart(2,'0');
+const fmtClock=ms=>{const d=new Date(ms);return pad(d.getHours())+':'+pad(d.getMinutes());};
+const fmtDT=ms=>{const d=new Date(ms);return pad(d.getDate())+'.'+pad(d.getMonth()+1)+' '+fmtClock(ms);};
+const fmtHMs=m=>{m=Math.max(0,Math.round(m));return Math.floor(m/60)+':'+pad(m%60);};
+const DAYS=['niedziela','poniedziałek','wtorek','środa','czwartek','piątek','sobota'];
+function toLocalInput(ms){const d=new Date(ms);return d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate())+'T'+pad(d.getHours())+':'+pad(d.getMinutes());}
+function toast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');clearTimeout(t._h);t._h=setTimeout(()=>t.classList.remove('show'),2400);}
+const $=id=>document.getElementById(id);
+
+/* ================= TARCZA ================= */
+const DIAL_R=78, DIAL_C=2*Math.PI*DIAL_R;
+function buildDial(){
+  let t='';
+  for(let i=0;i<9;i++){const a=(i*40-90)*Math.PI/180, main=i%3===0;
+    const r1=95,r2=main?85:89;
+    t+=`<line x1="${100+r1*Math.cos(a)}" y1="${100+r1*Math.sin(a)}" x2="${100+r2*Math.cos(a)}" y2="${100+r2*Math.sin(a)}" stroke="#3A465C" stroke-width="${main?3:2}" stroke-linecap="round"/>`;}
+  $('dial').innerHTML=t+
+   `<circle cx="100" cy="100" r="${DIAL_R}" fill="none" stroke="#151D2B" stroke-width="11"/>
+    <circle id="dialArc" cx="100" cy="100" r="${DIAL_R}" fill="none" stroke="var(--amber)" stroke-width="11"
+      stroke-linecap="round" stroke-dasharray="${DIAL_C}" stroke-dashoffset="${DIAL_C}"
+      transform="rotate(-90 100 100)" style="transition:stroke-dashoffset .5s ease,stroke .3s"/>`;
+}
+function setDial(mins){
+  const frac=Math.min(1,mins/L.CONT_DRIVE), over=mins>L.CONT_DRIVE;
+  $('dialArc').style.strokeDashoffset=DIAL_C*(1-frac);
+  $('dialArc').style.stroke=over?'var(--red)':(mins>=L.CONT_DRIVE-30?'var(--yellow)':'var(--amber)');
+  $('contTime').textContent=fmtHMs(mins);
+  $('contTime').classList.toggle('bad',over);
+}
+
+/* ================= RENDER: DZIŚ ================= */
+let lastR=null;
+function assistCard(title,dotColor,rowsHTML){
+  return `<div class="card"><h3><span class="dot" style="background:${dotColor}"></span>${title}</h3>${rowsHTML}</div>`;
+}
+function sevClass(deadline,now){const left=deadline-now;
+  return left<0?'bad':(left<2*3600000?'warn':'ok');}
+
+function renderToday(R,now){
+  setDial(R.contDrive);
+  // podpowiedź pod tarczą
+  const cur=R.currentSeg;
+  if(cur&&cur.type==='rest'){
+    const d=Math.round((now-cur.start)/MIN);
+    let need = R.partial15? L.BREAK_P2 : L.BREAK_FULL;
+    if(d>=need) $('contHint').innerHTML=`przerwa zaliczona ✓ — licznik jazdy wyzerowany`;
+    else $('contHint').innerHTML=`trwa przerwa: <b>${fmtHMs(d)}</b> — ${R.partial15?'wystarczy 30 min':'pełne 45 min'} zaliczysz o <b>${fmtClock(cur.start+need*MIN)}</b>`;
+  } else if(R.contDrive>=L.CONT_DRIVE){
+    $('contHint').innerHTML=`limit 4:30 przekroczony — <b>natychmiast rozpocznij przerwę 45 min</b>`;
+  } else if(R.contDrive>0){
+    $('contHint').innerHTML=`możesz jechać jeszcze <b>${fmtHMs(L.CONT_DRIVE-R.contDrive)}</b> — przerwę zacznij najpóźniej o <b>${fmtClock(R.breakDeadline)}</b>`+(R.partial15?` <span style="color:var(--green)">(15 min zaliczone → wystarczy 30)</span>`:'');
+  } else {
+    $('contHint').innerHTML=`licznik czysty — pełne <b>4:30</b> jazdy do dyspozycji`;
+  }
+  // baner bieżącej aktywności
+  const nb=$('nowBanner');
+  if(cur){ nb.style.display='flex';
+    nb.querySelector('.pulse').style.background=TYPES[cur.type].hex;
+    $('nowLabel').innerHTML=`Trwa: <b>${TYPES[cur.type].name}</b>`;
+    $('nowSince').textContent='od '+fmtClock(cur.start);
+    $('nowDur').textContent=fmtHMs((now-cur.start)/MIN);
+    document.querySelectorAll('.act').forEach(b=>b.classList.toggle('on',b.dataset.act===cur.type));
+    $('stopBtn').classList.add('armed');
+  } else { nb.style.display='none';
+    document.querySelectorAll('.act').forEach(b=>b.classList.remove('on'));
+    $('stopBtn').classList.remove('armed');
+  }
+
+  /* --- karty asystenta --- */
+  let A='';
+
+  // Jazda dzienna
+  const dd=R.dayDrive, lim=R.dayDriveLimit, left=lim-dd;
+  const pct=Math.min(100,dd/L.DAILY_DRIVE_EXT*100);
+  A+=assistCard('Jazda dzienna','var(--amber)',
+    `<div class="bar"><i style="width:${pct}%" class="${dd>lim?'over':''}"></i><span class="mark" style="left:90%"></span></div>
+     <div class="bar-cap"><span>0</span><span>9h</span><span>10h</span></div>
+     <div class="row"><span class="k">Dziś przejechane</span><span class="v amb">${fmtHMs(dd)}</span></div>
+     <div class="row"><span class="k">Możesz jeszcze</span><span class="v ${left<=0?'bad':left<60?'warn':'ok'}">${left>0?fmtHMs(left):'0:00 — STOP'}</span></div>
+     <div class="row"><span class="k">Wydłużenia do 10h (ten tydz.)</span><span class="v ${R.extUsedThisWeek>=2?'warn':''}">${R.extUsedThisWeek} / 2 ${R.extAvailable?'':' — limit dziś: 9h'}</span></div>`);
+
+  // Odpoczynek dobowy
+  const p=R.period;
+  let restRows;
+  if(cur&&cur.type==='rest'){
+    const dmin=(now-cur.start)/MIN;
+    const miles=[[L.BREAK_FULL,'przerwa 45 min'],[L.SPLIT_P1,'1. część dzielonego (3h)'],[L.DAILY_REST_RED,'dobowy skrócony (9h)'],[L.DAILY_REST_REG,'dobowy pełny (11h)'],[L.WEEKLY_REST_RED,'tygodniowy skrócony (24h)'],[L.WEEKLY_REST_REG,'tygodniowy pełny (45h)']];
+    restRows=`<div class="row"><span class="k">Trwa odpoczynek</span><span class="v ok">${fmtHMs(dmin)}</span></div>`;
+    for(const[m,n]of miles){ if(dmin>=m) restRows+=`<div class="row"><span class="k">${n}</span><span class="v ok">✓ zaliczone</span></div>`;
+      else { restRows+=`<div class="row"><span class="k">${n}</span><span class="v">o ${fmtDT(cur.start+m*MIN)}</span></div>`; break; } }
+  } else {
+    restRows =`<div class="row"><span class="k">Doba trwa od</span><span class="v">${fmtDT(p.start)}</span></div>`;
+    if(p.splitP1) restRows+=`<div class="row"><span class="k">Masz 1. część dzielonego (≥3h) → 2. część 9h zacznij do</span><span class="v ${sevClass(p.deadlineFull,now)}">${fmtClock(p.deadlineFull)}</span></div>`;
+    else{
+      restRows+=`<div class="row"><span class="k">Pełny 11h — zacznij do</span><span class="v ${sevClass(p.deadlineFull,now)}">${fmtDT(p.deadlineFull)}</span></div>`;
+      restRows+= R.redAvailable
+        ? `<div class="row"><span class="k">Skrócony 9h — zacznij do</span><span class="v ${sevClass(p.deadlineRed,now)}">${fmtDT(p.deadlineRed)}</span></div>`
+        : `<div class="row"><span class="k">Skrócony 9h</span><span class="v warn">niedostępny (3/3 użyte)</span></div>`;
+    }
+    restRows+=`<div class="row"><span class="k">Skrócone dobowe od ost. tyg.</span><span class="v ${R.reducedDailyUsed>=3?'warn':''}">${R.reducedDailyUsed} / 3</span></div>`;
+  }
+  A+=assistCard('Odpoczynek dobowy','var(--green)',restRows);
+
+  // Tydzień
+  const wk=weekStart(now), wNow=R.weekDrive[wk]||0, wPrev=R.weekDrive[wk-7*24*60*MIN]||0;
+  A+=assistCard('Tydzień i 2 tygodnie','var(--blue)',
+    `<div class="bar"><i style="width:${Math.min(100,wNow/L.WEEK_DRIVE*100)}%" class="${wNow>L.WEEK_DRIVE?'over':''}"></i></div>
+     <div class="bar-cap"><span>jazda w tym tygodniu</span><span>${fmtHMs(wNow)} / 56h</span></div>
+     <div class="row"><span class="k">Zostało w tygodniu</span><span class="v ${L.WEEK_DRIVE-wNow<300?'warn':'ok'}">${fmtHMs(Math.max(0,L.WEEK_DRIVE-wNow))}</span></div>
+     <div class="row"><span class="k">2 tyg. (poprz.+bież.)</span><span class="v ${wPrev+wNow>L.BIWEEK_DRIVE?'bad':''}">${fmtHMs(wPrev+wNow)} / 90h</span></div>
+     <div class="row"><span class="k">Zostało w 2-tyg. puli</span><span class="v ok">${fmtHMs(Math.max(0,L.BIWEEK_DRIVE-wPrev-wNow))}</span></div>`);
+
+  // Tygodniowy + rekompensaty
+  let wr='';
+  if(R.nextWeeklyLatestStart){
+    wr+=`<div class="row"><span class="k">Następny tyg. odpoczynek zacznij do</span><span class="v ${sevClass(R.nextWeeklyLatestStart,now)}">${fmtDT(R.nextWeeklyLatestStart)}</span></div>`;
+    wr+=`<div class="row"><span class="k">Ostatni tygodniowy skończył się</span><span class="v">${fmtDT(R.lastWeeklyEnd)}</span></div>`;
+  } else wr+=`<div class="row"><span class="k">Brak jeszcze zarejestrowanego odpoczynku tygodniowego (≥24h)</span><span class="v">—</span></div>`;
+  const pend=R.compensations.filter(c=>!c.paidAt);
+  if(pend.length) for(const c of pend) wr+=`<div class="row"><span class="k">Rekompensata do oddania</span><span class="v ${sevClass(c.deadline,now)}">${fmtHMs(c.owe)} do ${fmtDT(c.deadline)}</span></div>`;
+  else wr+=`<div class="row"><span class="k">Rekompensaty</span><span class="v ok">brak zaległych ✓</span></div>`;
+  A+=assistCard('Odpoczynek tygodniowy','#B58CFF',wr);
+
+  $('assist').innerHTML=A;
+
+  // timeline doby
+  const t0=p.start, t1=t0+24*3600000, span=t1-t0;
+  let tl='';
+  for(const s of R.segs){ if(s.end<=t0||s.start>=t1) continue;
+    const a=Math.max(s.start,t0), b=Math.min(s.end,t1);
+    tl+=`<i style="width:${(b-a)/span*100}%;background:${TYPES[s.type].hex}${s.type==='rest'?'':''};opacity:${s.type==='rest'?.55:1}"></i>`;}
+  if(now<t1) tl+=`<i style="width:${(t1-Math.max(now,t0))/span*100}%;background:transparent"></i>`;
+  $('dayline').innerHTML=tl||'<i style="width:100%;background:transparent"></i>';
+  $('daylineFrom').textContent='od '+fmtDT(t0)+' (okno 24h)';
+}
+
+/* ================= RENDER: DZIENNIK ================= */
+function renderLog(){
+  const list=[...state.events].sort((a,b)=>b.start-a.start);
+  if(!list.length){$('logList').innerHTML=`<div class="empty"><div class="big">🛣️</div>Brak wpisów. Użyj przycisków na zakładce „Dziś" albo dodaj wpis ręcznie.</div>`;return;}
+  let html='',day='';
+  const sums={};
+  for(const e of list){const k=new Date(e.start).toDateString();(sums[k]=sums[k]||{drive:0})[e.type==='drive'?'drive':'x']= (sums[k][e.type==='drive'?'drive':'x']||0)+((e.end||Date.now())-e.start)/MIN;}
+  for(const e of list){
+    const k=new Date(e.start).toDateString();
+    if(k!==day){day=k;const d=new Date(e.start);
+      html+=`<div class="day-h"><span class="d">${DAYS[d.getDay()]}, ${pad(d.getDate())}.${pad(d.getMonth()+1)}.${d.getFullYear()}</span><span class="s">jazda ${fmtHMs(sums[k].drive||0)}</span></div>`;}
+    const dur=((e.end||Date.now())-e.start)/MIN;
+    html+=`<div class="ev" data-id="${e.id}">
+      <div class="ic" style="color:${TYPES[e.type].hex};background:${TYPES[e.type].hex}18">${ICONS[e.type]}</div>
+      <div class="mid"><div class="tt">${TYPES[e.type].name}${e.end?'':' <span style="color:var(--green)">• trwa</span>'}</div>
+      <div class="sub">${fmtClock(e.start)} – ${e.end?fmtClock(e.end):'…'}</div>
+      ${e.note?`<div class="note">📝 ${e.note}</div>`:''}</div>
+      <div class="dur mono">${fmtHMs(dur)}</div></div>`;
+  }
+  $('logList').innerHTML=html;
+  document.querySelectorAll('.ev').forEach(el=>el.onclick=()=>openModal(el.dataset.id));
+}
+
+/* ================= RENDER: ANALIZA ================= */
+function renderAnalysis(R,now){
+  const V=R.violations;
+  const viol=V.filter(v=>v.sev==='viol'), warn=V.filter(v=>v.sev==='warn'), info=V.filter(v=>v.sev==='info');
+  const b=$('vBadge'); b.style.display=viol.length?'block':'none'; b.textContent=viol.length;
+  let h='';
+  if(!state.events.length){$('anBody').innerHTML=`<div class="empty"><div class="big">📊</div>Analiza pojawi się po dodaniu pierwszych wpisów.</div>`;return;}
+  h+=`<div class="card"><h3><span class="dot" style="background:${viol.length?'var(--red)':'var(--green)'}"></span>${viol.length?`Naruszenia: ${viol.length}`:'Brak naruszeń — jedziesz czysto ✓'}</h3>`;
+  for(const v of viol) h+=`<div class="viol">${v.msg}<div class="when">${fmtDT(v.at)}</div></div>`;
+  h+='</div>';
+  if(warn.length){h+='<div class="card"><h3><span class="dot" style="background:var(--yellow)"></span>Ostrzeżenia</h3>';
+    for(const v of warn) h+=`<div class="viol warn">${v.msg}<div class="when">${fmtDT(v.at)}</div></div>`; h+='</div>';}
+  if(info.length){h+='<div class="card"><h3><span class="dot" style="background:var(--blue)"></span>Wykorzystane furtki i terminy</h3>';
+    for(const v of info) h+=`<div class="viol info">${v.msg}<div class="when">${fmtDT(v.at)}</div></div>`; h+='</div>';}
+  // tygodnie
+  const wks=Object.keys(R.weekDrive).map(Number).sort((a,b)=>b-a).slice(0,8);
+  if(wks.length){h+='<div class="card"><h3>Jazda tygodniami</h3><table class="mini"><tr><th>Tydzień od</th><th>Jazda</th><th>Limit 56h</th></tr>';
+    for(const w of wks){const d=R.weekDrive[w];const over=d>L.WEEK_DRIVE;
+      h+=`<tr><td>${fmtDT(w).slice(0,5)}</td><td>${fmtHMs(d)}</td><td style="color:${over?'var(--red)':'var(--green)'}">${over?'przekroczony':'OK ('+fmtHMs(L.WEEK_DRIVE-d)+' zapasu)'}</td></tr>`;}
+    h+='</table></div>';}
+  // rekompensaty
+  if(R.compensations.length){h+='<div class="card"><h3>Rekompensaty za skrócone tygodniowe</h3>';
+    for(const c of R.compensations) h+=`<div class="row"><span class="k">${fmtHMs(c.owe)} • termin ${fmtDT(c.deadline)}</span><span class="v ${c.paidAt?'ok':(now>c.deadline?'bad':'warn')}">${c.paidAt?'oddana '+fmtDT(c.paidAt)+' ✓':(now>c.deadline?'PO TERMINIE':'do oddania')}</span></div>`;
+    h+='</div>';}
+  $('anBody').innerHTML=h;
+}
+
+/* ================= MODAL ================= */
+let editId=null, mType='drive';
+function openModal(id){
+  editId=id||null;
+  const e=id?state.events.find(x=>x.id===id):null;
+  $('mTitle').textContent=e?'Edytuj wpis':'Nowy wpis';
+  mType=e?e.type:'drive';
+  document.querySelectorAll('#mSeg button').forEach(b=>b.classList.toggle('sel',b.dataset.t===mType));
+  const s=e?e.start:nowMin();
+  $('mStart').value=toLocalInput(s);
+  $('mOpen').checked=e?e.end==null:false;
+  $('mEnd').value=toLocalInput(e&&e.end?e.end:s+60*MIN);
+  $('mEnd').disabled=$('mOpen').checked;
+  $('mNote').value=e&&e.note?e.note:'';
+  $('mDel').style.display=e?'block':'none';
+  $('ovl').classList.add('show');
+}
+function closeModal(){$('ovl').classList.remove('show');}
+function saveModal(){
+  const start=new Date($('mStart').value).getTime();
+  const open=$('mOpen').checked;
+  const end=open?null:new Date($('mEnd').value).getTime();
+  if(isNaN(start)||(!open&&(isNaN(end)||end<=start))){toast('Sprawdź daty — koniec musi być po początku');return;}
+  if(open){const other=state.events.find(x=>x.end==null&&x.id!==editId); if(other){toast('Inny wpis już trwa — najpierw go zakończ');return;}}
+  const note=$('mNote').value.trim();
+  if(editId){const e=state.events.find(x=>x.id===editId);Object.assign(e,{type:mType,start,end,note});}
+  else state.events.push({id:uid(),type:mType,start,end,note});
+  save();closeModal();renderAll();toast('Zapisano');
+}
+
+/* ================= AKCJE SZYBKIE ================= */
+function startAct(type){
+  const n=nowMin();
+  const open=state.events.find(e=>e.end==null);
+  if(open){ if(open.type===type){toast(TYPES[type].name+' już trwa');return;}
+    if(n<=open.start){toast('Odczekaj minutę — wpisy co 1 min');return;}
+    open.end=n; }
+  state.events.push({id:uid(),type,start:n,end:null,note:''});
+  save();renderAll();toast('▶ '+TYPES[type].name+' od '+fmtClock(n));
+}
+function stopAct(){
+  const open=state.events.find(e=>e.end==null);
+  if(!open){toast('Nic nie trwa');return;}
+  const n=nowMin(); if(n<=open.start){toast('Wpis krótszy niż minuta — usuń go w Dzienniku');return;}
+  open.end=n;save();renderAll();toast('■ Zakończono: '+TYPES[open.type].name);
+}
+
+/* ================= BACKUP ================= */
+function doExport(){
+  const data={app:'tachostroz',version:1,exported:new Date().toISOString(),settings:state.settings,events:state.events};
+  const blob=new Blob([JSON.stringify(data,null,1)],{type:'application/json'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);
+  const d=new Date();a.download=`tachostroz-backup-${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}.json`;
+  a.click();URL.revokeObjectURL(a.href);toast('Wyeksportowano '+state.events.length+' wpisów');
+}
+function doImport(file){
+  const r=new FileReader();
+  r.onload=()=>{try{
+    const p=JSON.parse(r.result);
+    if(!Array.isArray(p.events)) throw 0;
+    if($('impMerge').checked){
+      const ids=new Set(state.events.map(e=>e.id));let n=0;
+      for(const e of p.events) if(!ids.has(e.id)){state.events.push(e);n++;}
+      toast('Scalono: dodano '+n+' wpisów');
+    } else { state.events=p.events; if(p.settings)state.settings=Object.assign(state.settings,p.settings); toast('Zaimportowano '+p.events.length+' wpisów'); }
+    save();renderAll();
+  }catch(e){toast('Nieprawidłowy plik backupu');}};
+  r.readAsText(file);
+}
+
+/* ================= PORADNIK ================= */
+function renderGuide(){
+$('guideBody').innerHTML=`
+<details open><summary>📏 Limity w pigułce<span class="chev">›</span></summary><div class="body">
+<table><tr><th>Co</th><th>Limit</th></tr>
+<tr><td>Jazda ciągła</td><td><b>4 h 30 min</b> → przerwa 45 min (lub 15 + 30 <b>w tej kolejności</b>)</td></tr>
+<tr><td>Jazda dzienna</td><td><b>9 h</b> (2× w tygodniu <b>10 h</b>)</td></tr>
+<tr><td>Jazda tygodniowa</td><td><b>56 h</b> (tydzień = pon 00:00 – ndz 24:00)</td></tr>
+<tr><td>Jazda w 2 tygodnie</td><td><b>90 h</b> łącznie</td></tr>
+<tr><td>Odpoczynek dobowy</td><td><b>11 h</b> • skrócony <b>9 h</b> (max 3× między tygodniowymi) • dzielony <b>3 h + 9 h</b></td></tr>
+<tr><td>Doba pracownicza</td><td>odpoczynek dobowy musi się <b>zakończyć w 24 h</b> od podjęcia pracy</td></tr>
+<tr><td>Odpoczynek tygodniowy</td><td><b>45 h</b> • skrócony <b>≥24 h</b> + rekompensata • start najpóźniej <b>144 h (6×24)</b> po końcu poprzedniego</td></tr>
+<tr><td>Rekompensata</td><td>oddana <b>jednym blokiem</b>, doklejona do odpoczynku <b>≥9 h</b>, do końca <b>3. tygodnia</b> po skróceniu</td></tr></table>
+<p>W 2 kolejnych tygodniach: min. <b>1 regularny (45 h)</b> + 1 dowolny. Dwa skrócone z rzędu — tylko międzynarodowo, poza krajem bazy, z podwójną rekompensatą.</p>
+</div></details>
+
+<details><summary>💳 Karta i tachograf — krok po kroku<span class="chev">›</span></summary><div class="body">
+<ol>
+<li><b>Start:</b> kartę do slotu 1 (chip do góry) → tachograf pyta o kraj rozpoczęcia → zatwierdź. Sprawdź, czy proponuje <b>uzupełnienie wpisów manualnych</b> od ostatniego wyjęcia karty.</li>
+<li><b>Jazda</b> rejestruje się sama, gdy pojazd rusza.</li>
+<li><b>Postój:</b> tachograf często sam przełącza na 🔨 (inna praca) — <b>ręcznie ustaw 🛏 (łóżko)</b>, jeśli odpoczywasz, bo tylko łóżko liczy się do przerwy 45 min i odpoczynków!</li>
+<li>Symbole: 🚛 jazda • 🔨 inna praca • ⬜ dyspozycyjność • 🛏 odpoczynek.</li>
+<li><b>Koniec:</b> przytrzymaj przycisk slotu → kraj zakończenia → wyjmij kartę. Nigdy w czasie jazdy.</li>
+<li><b>OUT:</b> tryb dla jazdy poza zakresem przepisów (np. nietypowy przewóz) — włączaj świadomie i wyłączaj po powrocie.</li>
+</ol>
+<div class="warn2">Najczęstszy błąd kontrolny: postój na symbolu 🔨 zamiast 🛏 → „brak przerwy" i kara, mimo że stałeś.</div>
+</div></details>
+
+<details><summary>✍️ Wpisy manualne — obowiązek, o którym się zapomina<span class="chev">›</span></summary><div class="body">
+<p>Wszystko, co robiłeś <b>od wyjęcia do włożenia karty</b> (odpoczynek, inna praca, dyspozycyjność), musisz uzupełnić <b>przy wkładaniu karty</b>, zanim ruszysz. Tachograf sam o to zapyta („uzupełnić wpisy?" → TAK).</p>
+<ul><li>Wpisujesz wstecz: rodzaj aktywności + od–do, kraj.</li>
+<li>Pomyłka? Nie panikuj — dokończ, a rozbieżność opisz na wydruku z podpisem.</li>
+<li>Brak wpisów manualnych to jedno z najczęstszych naruszeń przy kontroli firmy.</li></ul>
+</div></details>
+
+<details><summary>🧠 Tricki legalnego planowania (to lubią wiedzieć starzy kierowcy)<span class="chev">›</span></summary><div class="body">
+<ul>
+<li><b>15 + 30, nigdy 30 + 15.</b> Druga część musi mieć ≥30 min. Po pełnym cyklu licznik 4:30 rusza od zera.</li>
+<li><b>Przerwa ≥45 min zeruje zawsze</b> — nawet po 1 h jazdy. Czasem opłaca się „przepalić" przerwę wcześniej (np. czekasz na rampę), by mieć czyste 4:30 na trasę.</li>
+<li><b>Dzielony 3 + 9:</b> nie wydłuża doby, ale ratuje dzień z długim postojem w środku (np. załadunek 3 h po południu). Część 3 h <b>nie</b> zużywa puli skróconych.</li>
+<li><b>Skrócony dobowy 9 h = okno pracy 15 h.</b> Masz 3 sztuki między tygodniowymi — trzymaj je na dni, gdy naprawdę potrzebujesz, nie pal na zapas.</li>
+<li><b>Wydłużenia do 10 h (2×/tydz.)</b> planuj na najdłuższe odcinki. Silnik TachoStróża sam liczy, ile zostało.</li>
+<li><b>Doba rusza z pierwszą pracą po odpoczynku</b> — jeśli po 11 h przerwy poleżysz jeszcze 2 h, deadline liczy się od momentu, gdy realnie zaczynasz.</li>
+<li><b>Tygodniowy zaczęty w piątek wieczorem</b> (45 h) kończy się w niedzielę wieczorem — auto gotowe na nocny start.</li>
+<li><b>Rekompensatę doklej do najbliższego 45 h</b> → jeden długi blok i temat z głowy przed deadlinem.</li>
+<li><b>Pilnuj 6×24:</b> przy ciężkim tygodniu to częściej ono wymusza weekend niż limit 56 h.</li>
+</ul>
+</div></details>
+
+<details><summary>⛴️ Prom i pociąg<span class="chev">›</span></summary><div class="body">
+<p>Regularny odpoczynek <b>dobowy (11 h)</b> lub <b>tygodniowy (45 h)</b> odbierany na promie/pociągu z dostępem do koi możesz przerwać <b>maks. 2 razy, łącznie ≤1 h</b> (wjazd/zjazd). W tachografie użyj symbolu promu przed rozpoczęciem odpoczynku.</p>
+</div></details>
+
+<details><summary>🆘 Art. 12 — gdy życie pisze scenariusz<span class="chev">›</span></summary><div class="body">
+<p>Możesz odstąpić od limitów, by dojechać do <b>bezpiecznego miejsca postoju</b>, jeśli nie zagraża to bezpieczeństwu — pod warunkiem że sytuacja była nagła i nie do przewidzenia (korek po wypadku, zamknięty parking).</p>
+<ul><li><b>+1 h</b> ponad limity, by dotrzeć do bazy/domu na <b>tygodniowy</b> odpoczynek;</li>
+<li><b>+2 h</b> (poprzedzone przerwą 30 min), by dotrzeć na <b>regularny tygodniowy (45 h)</b>.</li></ul>
+<div class="tip"><b>Zawsze:</b> zrób wydruk, opisz odręcznie powód, miejsce, podpis — <b>niezwłocznie po zatrzymaniu</b>. W tej aplikacji dopisz notatkę do wpisu (📝), żeby analiza była kompletna.</div>
+</div></details>
+
+<details><summary>👮 Kontrola drogowa — co pokazujesz<span class="chev">›</span></summary><div class="body">
+<ul>
+<li>Kartę kierowcy + dane z tachografu za <b>dzień bieżący i 56 dni wstecz</b> (od 31.12.2024 — wcześniej było 28).</li>
+<li>Wydruki z odręcznymi adnotacjami (awarie, art. 12).</li>
+<li>Zaświadczenie o działalności tylko tam, gdzie kraj go wymaga — w UE co do zasady wystarczą wpisy manualne.</li>
+</ul>
+<p>Bądź spokojny i konkretny: inspektor widzi w danych wszystko — liczy się, czy nietypowe zdarzenia są <b>opisane</b>.</p>
+</div></details>
+
+<details><summary>🚐 Busy 2,5–3,5 t — nowość od 1.07.2026<span class="chev">›</span></summary><div class="body">
+<p>Pakiet Mobilności: pojazdy <b>2,5–3,5 t</b> w <b>międzynarodowym</b> przewozie rzeczy (i kabotażu) są objęte pełnym rozp. 561/2006 + obowiązkiem <b>inteligentnego tachografu G2v2</b>. Te same limity, które liczy TachoStróż.</p>
+<ul><li>Przewóz wyłącznie krajowy busem — poza 561/2006 (ale polska ustawa o czasie pracy kierowców nadal obowiązuje).</li>
+<li>Przewozy na potrzeby własne ≤ 3,5 t — wyłączone.</li></ul>
+</div></details>
+
+<details><summary>⚖️ Kary — rząd wielkości (PL)<span class="chev">›</span></summary><div class="body">
+<p>Taryfikator (zał. do ustawy o transporcie drogowym) dzieli naruszenia na PN / BPN / NN. Orientacyjnie dla kierowcy:</p>
+<ul>
+<li>drobne przekroczenia (jazda ciągła / dzienna do ~1 h): rzędu <b>100–200 zł</b>;</li>
+<li>poważne (skrócenie odpoczynku o kilka godzin, przekroczenia 2 h+): <b>300–2000 zł</b>;</li>
+<li>manipulacje przy tachografie: <b>2000 zł + zatrzymanie</b>, dla firmy do <b>10 000 zł</b> i utrata dobrej reputacji.</li>
+</ul>
+<p>Firma odpowiada równolegle (limit sumy kar na jedną kontrolę drogową: 12 000 zł). Stawki się zmieniają — traktuj jako skalę ryzyka, nie cennik.</p>
+</div></details>
+
+<details><summary>🛡️ Jak liczy TachoStróż<span class="chev">›</span></summary><div class="body">
+<ul>
+<li><b>Luki między wpisami = odpoczynek.</b> Wpisujesz tylko aktywność; nocy i weekendów nie musisz.</li>
+<li>Odpoczynki klasyfikuję długością: ≥45 min przerwa • ≥3 h część dzielonego • ≥9 h dobowy skrócony • ≥11 h dobowy • ≥24 h tygodniowy skrócony • ≥45 h tygodniowy pełny.</li>
+<li>Do przerwy 45 min liczy się <b>wyłącznie odpoczynek</b> — inna praca i dyspozycyjność nie zerują licznika (tak samo patrzy inspektor).</li>
+<li>Tydzień = kalendarzowy (pon–ndz). Rekompensaty wykrywam automatycznie z nadwyżek odpoczynków.</li>
+<li>Aplikacja wspiera i ostrzega, ale <b>dokumentem jest karta kierowcy</b> — prowadź ją równolegle i bez wyjątków.</li>
+</ul>
+</div></details>`;
+}
+
+/* ================= RENDER ALL / INIT ================= */
+function renderBackupStats(){
+  $('statCount').textContent=state.events.length;
+  if(state.events.length){const a=Math.min(...state.events.map(e=>e.start)),b=Math.max(...state.events.map(e=>e.end||Date.now()));
+    $('statRange').textContent=fmtDT(a).slice(0,5)+' – '+fmtDT(b).slice(0,5);}
+  else $('statRange').textContent='—';
+  $('swIntl').classList.toggle('on',!!state.settings.international);
+}
+function renderAll(){
+  const now=Date.now();
+  lastR=analyze(state.events,now,state.settings);
+  renderToday(lastR,now);
+  renderAnalysis(lastR,now);
+  renderLog();
+  renderBackupStats();
+}
+function tick(){
+  $('clock').textContent=new Date().toLocaleTimeString('pl-PL');
+  const now=Date.now();
+  lastR=analyze(state.events,now,state.settings);
+  if(document.querySelector('#tab-today.active')) renderToday(lastR,now);
+  const viol=lastR.violations.filter(v=>v.sev==='viol').length;
+  const b=$('vBadge'); b.style.display=viol?'block':'none'; b.textContent=viol;
+}
+
+document.querySelectorAll('nav button').forEach(b=>b.onclick=()=>{
+  document.querySelectorAll('nav button').forEach(x=>x.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));
+  b.classList.add('active'); $('tab-'+b.dataset.tab).classList.add('active');
+  if(b.dataset.tab==='analysis') renderAnalysis(lastR,Date.now());
+  if(b.dataset.tab==='log') renderLog();
+  window.scrollTo(0,0);
+});
+document.querySelectorAll('.act').forEach(b=>b.onclick=()=>startAct(b.dataset.act));
+$('stopBtn').onclick=stopAct;
+$('addBtn').onclick=()=>openModal(null);
+$('mCancel').onclick=closeModal;
+$('ovl').onclick=e=>{if(e.target.id==='ovl')closeModal();};
+document.querySelectorAll('#mSeg button').forEach(b=>b.onclick=()=>{mType=b.dataset.t;
+  document.querySelectorAll('#mSeg button').forEach(x=>x.classList.toggle('sel',x===b));});
+$('mOpen').onchange=()=>$('mEnd').disabled=$('mOpen').checked;
+$('mSave').onclick=saveModal;
+$('mDel').onclick=()=>{if(confirm('Usunąć ten wpis?')){state.events=state.events.filter(e=>e.id!==editId);save();closeModal();renderAll();toast('Usunięto');}};
+$('expBtn').onclick=doExport;
+$('impBtn').onclick=()=>$('impFile').click();
+$('impFile').onchange=e=>{if(e.target.files[0])doImport(e.target.files[0]);e.target.value='';};
+$('swIntl').onclick=()=>{state.settings.international=!state.settings.international;save();renderAll();};
+$('wipeBtn').onclick=()=>{if(confirm('Na pewno usunąć WSZYSTKIE dane? Najpierw zrób eksport!')&&confirm('Ostatnie ostrzeżenie — operacja nieodwracalna.')){state.events=[];save();renderAll();toast('Wyczyszczono');}};
+
+buildDial();
+renderGuide();
+load();
+renderAll();
+setInterval(tick,1000);
+</script>
+</body>
+</html>
