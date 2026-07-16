@@ -109,7 +109,9 @@ main{padding:16px 16px 8px;max-width:560px;margin:0 auto}
   display:flex;flex-direction:column;align-items:center;gap:6px;font-weight:600;font-size:.92rem;
   transition:transform .06s ease}
 .act:active{transform:scale(.97)}
-.act svg{width:26px;height:26px;filter:drop-shadow(0 1px 1px rgba(0,0,0,.3))}
+.eico{font-size:26px;line-height:1;filter:drop-shadow(0 1px 2px rgba(0,0,0,.35))}
+.seg .eico{font-size:21px}
+.ev .ic .eico{font-size:19px}
 .act.on{border-color:currentColor;box-shadow:inset 0 0 0 1px currentColor,inset 0 1px 0 var(--glass-hi),0 0 20px -6px currentColor}
 .act.on::after{content:'TRWA';font-size:.6rem;letter-spacing:.14em;font-weight:700;opacity:.9}
 .act-drive{color:var(--c-drive)} .act-work{color:var(--c-work)}
@@ -351,7 +353,7 @@ nav .badge{position:absolute;top:1px;right:calc(50% - 20px);min-width:16px;heigh
 <section id="tab-ask" class="tab">
   <div class="card" style="padding-bottom:10px">
     <h3><span class="dot" style="background:var(--amber)"></span>Asystent TachoStróża</h3>
-    <p class="hint-inline" style="margin:0 0 10px">Pytaj o rozp. 561/2006, obsługę tachografu i czas pracy — także o <b>Twoją bieżącą sytuację</b> (asystent widzi liczniki). Baza działa offline; pytania spoza niej może przejąć Claude, jeśli podasz klucz API w Backup.</p>
+    <p class="hint-inline" style="margin:0 0 10px">Pytaj o rozp. 561/2006, obsługę tachografu i czas pracy — także o <b>Twoją bieżącą sytuację</b> (asystent widzi liczniki). Baza działa offline; pytania spoza niej może przejąć Claude, jeśli podasz klucz API w Ustawieniach.</p>
     <div id="chips"></div>
   </div>
   <div id="chat"></div>
@@ -782,10 +784,10 @@ const TYPES={
   rest:{name:'Odpoczynek',color:'var(--c-rest)',hex:'#34D07C'}
 };
 const ICONS={
-  drive:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8.4"/><circle cx="12" cy="12" r="2.3"/><path d="M12 9.7V4.4M10 13.2l-4.6 2.6M14 13.2l4.6 2.6"/></svg>',
-  work:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>',
-  poa:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3.9" y="3.9" width="16.2" height="16.2" rx="5"/><path d="M12 7.8V12l3.1 1.85"/><path d="M12 6.1v.01M17.9 12h.01M12 17.9v.01M6.1 12h.01" stroke-width="2.1" opacity=".55"/></svg>',
-  rest:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M3.2 10.6V19"/><path d="M3.2 16.4h17.6v2.6"/><path d="M8.8 16.4v-3.2h8.4a3.2 3.2 0 0 1 3.2 3.2"/><circle cx="6" cy="13.4" r="1.9"/></svg>'
+  drive:'<span class="eico">🛞</span>',
+  work:'<span class="eico">🛠️</span>',
+  poa:'<span class="eico">⏰</span>',
+  rest:'<span class="eico">🛏️</span>'
 };
 const pad=n=>String(n).padStart(2,'0');
 const fmtClock=ms=>{const d=new Date(ms);return pad(d.getHours())+':'+pad(d.getMinutes());};
@@ -816,9 +818,9 @@ const TR_PAIRS=[
 ["Wklej własny klucz Anthropic API, a pytania spoza bazy offline przejmie Claude (tylko tematy: tachograf i 561/2006). Klucz zostaje wyłącznie w pamięci tej przeglądarki. Zapytanie kosztuje ułamek grosza (model Haiku).","Paste your own Anthropic API key and questions outside the offline base will be handled by Claude (tachograph & 561/2006 topics only). The key never leaves this browser. A query costs a fraction of a cent (Haiku model)."],
 ["„Najwyższy\" sam wykrywa czołowy model dostępny na Twoim kluczu (Opus &gt; Sonnet &gt; Haiku, najnowsza wersja). Uwaga: Opus potrafi kosztować kilkadziesiąt razy więcej niż Haiku.","\"Top\" auto-detects the best model available on your key (Opus &gt; Sonnet &gt; Haiku, newest version). Note: Opus can cost tens of times more than Haiku."],
 ["<b>iPhone:</b> Safari → <kbd>Udostępnij</kbd> → <kbd>Do ekranu początkowego</kbd>. <b>Android:</b> Chrome → <kbd>⋮</kbd> → <kbd>Zainstaluj aplikację</kbd> (lub „Dodaj do ekranu głównego\"). Dzięki plikom <code>manifest.json</code> i <code>sw.js</code> z repo obie platformy działają pełnoekranowo i offline.","<b>iPhone:</b> Safari → <kbd>Share</kbd> → <kbd>Add to Home Screen</kbd>. <b>Android:</b> Chrome → <kbd>⋮</kbd> → <kbd>Install app</kbd>. Thanks to <code>manifest.json</code> and <code>sw.js</code> in the repo, both platforms run full-screen and offline."],
-["Pytaj o rozp. 561/2006, obsługę tachografu i czas pracy — także o <b>Twoją bieżącą sytuację</b> (asystent widzi liczniki). Baza działa offline; pytania spoza niej może przejąć Claude, jeśli podasz klucz API w Backup.","Ask about Reg. 561/2006, tachograph use and driving time — including <b>your current situation</b> (the assistant sees your counters). The base works offline; other questions can be handled by Claude if you add an API key in Settings."],
+["Pytaj o rozp. 561/2006, obsługę tachografu i czas pracy — także o <b>Twoją bieżącą sytuację</b> (asystent widzi liczniki). Baza działa offline; pytania spoza niej może przejąć Claude, jeśli podasz klucz API w Ustawieniach.","Ask about Reg. 561/2006, tachograph use and driving time — including <b>your current situation</b> (the assistant sees your counters). The base works offline; other questions can be handled by Claude if you add an API key in Settings."],
 ["np. ile mogę dziś jeszcze jechać?","e.g. how much can I still drive today?"],
-["Nie mam tego w bazie offline. Sprawdź sekcje <b>Poradnika</b> albo włącz tryb AI: w zakładce <b>Backup</b> wklej klucz Anthropic API — wtedy takie pytania przejmie Claude (tylko tematy tachograf/561).","Not in my offline base. Check the <b>Guide</b> sections or enable AI mode: paste an Anthropic API key in <b>Settings</b> — Claude will handle such questions (tachograph/561 topics only)."],
+["Nie mam tego w bazie offline. Sprawdź sekcje <b>Poradnika</b> albo włącz tryb AI: w zakładce <b>Ustawienia</b> wklej klucz Anthropic API — wtedy takie pytania przejmie Claude (tylko tematy tachograf/561).","Not in my offline base. Check the <b>Guide</b> sections or enable AI mode: paste an Anthropic API key in <b>Settings</b> — Claude will handle such questions (tachograph/561 topics only)."],
 ["Usunąć ten wpis?","Delete this entry?"],
 ["Na pewno usunąć WSZYSTKIE dane? Najpierw zrób eksport!","Really delete ALL data? Export first!"],
 ["Ostatnie ostrzeżenie — operacja nieodwracalna.","Last warning — this cannot be undone."],
@@ -1864,7 +1866,7 @@ async function ask(q){
     if(res&&res.t) chatPush('b', res.t, 'Claude · '+prettyModel(res.m));
     else chatPush('b', (typeof res==='string'?res:'⚠️ Nie udało się uzyskać odpowiedzi.'), '');
   } else {
-    chatPush('b','Nie mam tego w bazie offline. Sprawdź sekcje <b>Poradnika</b> albo włącz tryb AI: w zakładce <b>Backup</b> wklej klucz Anthropic API — wtedy takie pytania przejmie Claude (tylko tematy tachograf/561).');
+    chatPush('b','Nie mam tego w bazie offline. Sprawdź sekcje <b>Poradnika</b> albo włącz tryb AI: w zakładce <b>Ustawienia</b> wklej klucz Anthropic API — wtedy takie pytania przejmie Claude (tylko tematy tachograf/561).');
   }
 }
 const CHIPS=['Ile mogę dziś jeszcze jechać?','Kiedy muszę zrobić przerwę?','Do której zacząć odpoczynek?','Ile zostało w tygodniu?','Czy mogę skrócić do 9h?','Rekompensata — ile i do kiedy?'];
