@@ -409,8 +409,8 @@ nav .badge{position:absolute;top:1px;right:calc(50% - 20px);min-width:16px;heigh
     <div class="switch"><div class="txt">15 min przed limitem</div><div class="sw" data-alarm="15"></div></div>
     <div class="switch"><div class="txt">5 min przed limitem</div><div class="sw" data-alarm="5"></div></div>
     <div class="switch"><div class="txt">Limit osiągnięty <small>czerwony alarm „PRZERWA — TERAZ!"</small></div><div class="sw" data-alarm="0"></div></div>
-    <div class="switch"><div class="txt">Koniec wymaganej przerwy <small>zielony sygnał „możesz ruszać" po 45/30 min</small></div><div class="sw" data-alarm-done></div></div>
-    <div class="switch"><div class="txt">Dźwięk alarmów <small>iPhone: pierwszy dotyk ekranu po starcie odblokowuje audio</small></div><div class="sw" data-alarm-snd></div></div>
+    <div class="switch"><div class="txt">Zaliczenie przerwy / odpoczynku <small>zielony sygnał: po 45/30 min, po 9 h i po 11 h</small></div><div class="sw" data-alarm-done></div></div>
+    <div class="switch"><div class="txt">Dźwięk alarmów <small>iPhone: pierwszy dotyk odblokowuje audio; sprawdź też boczny przełącznik trybu cichego i głośność</small></div><div class="sw" data-alarm-snd></div></div>
   </div>
   <div class="card">
     <h3>Wygląd</h3>
@@ -1156,6 +1156,20 @@ const TR_PAIRS=[
 ["iPhone: pierwszy dotyk ekranu po starcie odblokowuje audio","iPhone: the first screen tap after launch unlocks audio"],
 ["Sygnał końca przerwy ","End-of-break signal "],
 ["Dźwięk ","Sound "],
+["ODPOCZYNEK 11H ✓","11H REST ✓"],
+["Pełny odpoczynek dobowy odebrany. Świeże limity: <b>4:30</b> jazdy ciągłej i pełna dniówka przed Tobą.","Full daily rest taken. Fresh limits: <b>4:30</b> of continuous driving and a full day ahead."],
+["ODPOCZYNEK 9H ✓","9H REST ✓"],
+["Możesz ruszyć — zamkniesz dobę jako <b>skrócony</b> (","You may roll — the shift will close as a <b>reduced</b> daily ("],
+["/3). Wolisz pełny 11h? Będzie o <b>","/3). Prefer the full 11h? At <b>"],
+["Pula skróconych <b>3/3</b> zużyta — dośpij do pełnych 11h: o <b>","Reduced pool <b>3/3</b> used — sleep on to the full 11h: at <b>"],
+["Zaliczenie przerwy / odpoczynku","Break / rest completed"],
+["zielony sygnał: po 45/30 min, po 9 h i po 11 h","green signal: after 45/30 min, after 9 h and after 11 h"],
+["sprawdź też boczny przełącznik trybu cichego i głośność","also check the side silent switch and volume"],
+["Dokończona dzielona przerwa <b>15+30</b>","Split break <b>15+30</b> completed"],
+["Przerwa <b>45 min</b> odebrana","The <b>45-min</b> break taken"],
+[" — licznik jazdy ciągłej i reguła 6h wyzerowane. Możesz ruszać."," — the continuous-driving counter and the 6h rule are reset. You may roll."],
+["Gdyby to był postój na dobę: 9h o <b>","If this stop is your daily rest: 9h at <b>"],
+["</b> • 11h o <b>","</b> • 11h at <b>"],
 ];
 TR_PAIRS.sort((a,b)=>b[0].length-a[0].length);
 function tr(s){ if(LANG!=='en'||!s) return s; for(const p of TR_PAIRS) s=s.split(p[0]).join(p[1]); return s; }
@@ -1719,9 +1733,10 @@ function renderGuide(){ $('guideBody').innerHTML = (LANG==='en'? GUIDE_EN : GUID
 
 /* ================= ALARMY PRZERWY (30/15/5/0 min) ================= */
 const ALARM_AT=[30,15,5,0];
-let alarmFired={}, alarmFiredW={}, breakDoneKey=null, audioCtx=null, wakeLock=null;
+let alarmFired={}, alarmFiredW={}, doneFired={}, audioCtx=null, wakeLock=null;
 function unlockAudio(){ try{ if(!audioCtx) audioCtx=new (window.AudioContext||window.webkitAudioContext)();
   if(audioCtx.state==='suspended') audioCtx.resume(); }catch(e){} }
+['touchstart','mousedown','keydown'].forEach(ev=>document.addEventListener(ev,unlockAudio,{once:true,passive:true}));
 document.addEventListener('touchend',unlockAudio,{passive:true});
 document.addEventListener('click',unlockAudio);
 function tone(f,dur,at,vol,type){ const o=audioCtx.createOscillator(),g=audioCtx.createGain();
@@ -1731,8 +1746,9 @@ function tone(f,dur,at,vol,type){ const o=audioCtx.createOscillator(),g=audioCtx
 }
 function chime(kind){ try{
   if(state.settings.alarmSnd===false) return;
+  unlockAudio();
   if(!audioCtx) return;
-  if(audioCtx.state==='suspended') audioCtx.resume();
+  if(audioCtx.state==='suspended'){ audioCtx.resume().then(()=>{ if(audioCtx.state==='running') chime(kind); }).catch(()=>{}); return; }
   const t=audioCtx.currentTime+0.05;
   if(kind==='crit'){        /* pilny: 4× dwuton opadający */
     for(let i=0;i<4;i++){ tone(988,0.16,t+i*0.26,0.4,'square'); tone(659,0.16,t+i*0.26+0.12,0.4,'square'); }
@@ -1742,6 +1758,15 @@ function chime(kind){ try{
     tone(880,0.14,t); tone(880,0.14,t+0.22); tone(1175,0.22,t+0.46);
   }
 }catch(e){} }
+function showDone(title,html){
+  $('alarmBox').classList.remove('crit'); $('alarmBox').classList.add('okA');
+  $('alarmTitle').textContent=tr(title);
+  $('alarmText').innerHTML=tr(html);
+  $('alarmOvl').classList.add('show');
+  chime('done');
+  if(navigator.vibrate) navigator.vibrate([120,60,120]);
+  clearTimeout(showAlarm._h); showAlarm._h=setTimeout(()=>$('alarmOvl').classList.remove('show'),25000);
+}
 function showAlarm(kind,left,deadline){
   const done=kind==='done', crit=!done&&left<=0, isW=kind==='work';
   $('alarmBox').classList.toggle('crit',crit);
@@ -1785,9 +1810,21 @@ function checkAlarms(R){
   if(cur.type==='rest'){
     const d=Math.round((Date.now()-cur.start)/MIN);
     const need=R.partial15? L.BREAK_P2 : L.BREAK_FULL;
-    if(d>=need && breakDoneKey!==cur.start){
-      breakDoneKey=cur.start;
-      if(state.settings.alarmDone!==false) showAlarm('done',need,0);
+    const fire=m=>{ if(d>=m && !doneFired[cur.start+'_'+m]){ doneFired[cur.start+'_'+m]=1; return true; } return false; };
+    if(state.settings.alarmDone!==false){
+      if(fire(660)){
+        showDone('ODPOCZYNEK 11H ✓','Pełny odpoczynek dobowy odebrany. Świeże limity: <b>4:30</b> jazdy ciągłej i pełna dniówka przed Tobą.');
+      } else if(fire(540)){
+        const fullAt=fmtClock(cur.start+660*MIN);
+        showDone('ODPOCZYNEK 9H ✓', R.reducedDailyUsed<3
+          ? 'Możesz ruszyć — zamkniesz dobę jako <b>skrócony</b> ('+(R.reducedDailyUsed+1)+'/3). Wolisz pełny 11h? Będzie o <b>'+fullAt+'</b>.'
+          : 'Pula skróconych <b>3/3</b> zużyta — dośpij do pełnych 11h: o <b>'+fullAt+'</b>.');
+      } else if(fire(need)){
+        showDone('PRZERWA ZALICZONA ✓',
+          (need===L.BREAK_P2?'Dokończona dzielona przerwa <b>15+30</b>':'Przerwa <b>45 min</b> odebrana')
+          +' — licznik jazdy ciągłej i reguła 6h wyzerowane. Możesz ruszać.'
+          +'<br><span style="opacity:.75;font-size:.9em">Gdyby to był postój na dobę: 9h o <b>'+fmtClock(cur.start+540*MIN)+'</b> • 11h o <b>'+fmtClock(cur.start+660*MIN)+'</b>.</span>');
+      }
     }
     return;
   }
