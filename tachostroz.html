@@ -98,7 +98,17 @@ main{padding:16px 16px 8px;max-width:560px;margin:0 auto}
   background:linear-gradient(180deg,var(--num1),var(--num2));-webkit-background-clip:text;background-clip:text;color:transparent;
   filter:drop-shadow(0 1px 2px rgba(0,0,0,.3))}
 #contTime.bad{background:linear-gradient(180deg,#FF8F86,var(--red));-webkit-background-clip:text;background-clip:text}
-.dial-sub{font-family:var(--sans);font-size:.6rem;font-weight:600;letter-spacing:.17em;text-transform:uppercase;color:var(--mut);margin-top:2px}
+.dial-sub{font-family:var(--sans);font-size:.6rem;font-weight:600;letter-spacing:.17em;text-transform:uppercase;color:var(--mut);margin-top:2px;line-height:1.55;text-align:center}
+.ds2{font-size:.88em;letter-spacing:.12em;opacity:.85}
+#extBtn{position:absolute;top:4px;right:4px;z-index:3;font-weight:800;font-size:.82rem;padding:9px 13px;border-radius:99px;color:#0B1108;
+  border:1px solid var(--glass-brd);box-shadow:inset 0 1px 0 rgba(255,255,255,.45),inset 0 -1px 0 rgba(0,0,0,.15),0 4px 12px rgba(0,0,0,.3);transition:transform .08s ease}
+#extBtn:active{transform:translateY(1px)}
+#extBtn.g{background:linear-gradient(180deg,var(--arc-g-hi),var(--arc-g))}
+#extBtn.o{background:linear-gradient(180deg,var(--arc-o-hi),var(--arc-o))}
+#extBtn.r{background:linear-gradient(180deg,var(--arc-r-hi),var(--arc-r));color:#FFF}
+#extBtn.onx{outline:2px solid rgba(255,255,255,.85);outline-offset:-4px}
+#extBtn:disabled{opacity:.55}
+.v.orange{color:var(--arc-o)}
 #contHint{text-align:center;color:var(--mut);font-size:.98rem;line-height:1.45;margin:4px 10px 16px;min-height:1.3em}
 #contHint b{color:var(--ink);font-family:var(--mono);font-weight:600;font-size:1.06em}
 
@@ -257,6 +267,10 @@ nav .badge{position:absolute;top:1px;right:calc(50% - 20px);min-width:16px;heigh
 #alarmBox.crit #alarmTitle{background:linear-gradient(180deg,#FF8F86,var(--red));-webkit-background-clip:text;background-clip:text}
 #alarmBox p{color:var(--mut);font-size:.95rem;line-height:1.5;margin-bottom:18px}
 #alarmBox p b{color:var(--ink);font-family:var(--mono)}
+#gapOvl{display:none;position:fixed;inset:0;z-index:70;background:rgba(4,6,10,.6);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);align-items:center;justify-content:center;padding:20px}
+#gapBox{background:var(--glass);-webkit-backdrop-filter:blur(26px) saturate(160%);backdrop-filter:blur(26px) saturate(160%);border:1px solid var(--glass-brd);border-radius:26px;box-shadow:inset 0 1px 0 var(--glass-hi),var(--glass-sh);padding:24px 20px;max-width:420px;width:100%;text-align:center}
+#gapBox h2{font-size:1.12rem;margin-bottom:10px;text-shadow:0 1px 0 var(--emb)}
+#gapBox p{font-size:.92rem;color:var(--body);line-height:1.55;margin-bottom:16px}
 #toast{position:fixed;left:50%;bottom:calc(116px + env(safe-area-inset-bottom));transform:translateX(-50%) translateY(20px);
   background:var(--glassL);border:1px solid var(--glass-brd);color:var(--ink);padding:10px 18px;border-radius:99px;
   -webkit-backdrop-filter:blur(16px) saturate(150%);backdrop-filter:blur(16px) saturate(150%);
@@ -301,10 +315,11 @@ nav .badge{position:absolute;top:1px;right:calc(50% - 20px);min-width:16px;heigh
 <!-- ============ DZIŚ ============ -->
 <section id="tab-today" class="tab active">
   <div class="dial-wrap">
+    <button id="extBtn" class="g" aria-label="Wydłuż do 10h">+1h</button>
     <svg id="dial" viewBox="0 0 200 200"></svg>
     <div class="dial-center">
       <div id="contTime" class="mono">0:00</div>
-      <div class="dial-sub">jazda ciągła · 4:30</div>
+      <div class="dial-sub">jazda ciągła<br><span class="ds2">limit 4:30</span></div>
     </div>
   </div>
   <div id="contHint"></div>
@@ -478,6 +493,12 @@ nav .badge{position:absolute;top:1px;right:calc(50% - 20px);min-width:16px;heigh
   <button class="btn" id="alarmOk">OK, przyjąłem</button>
 </div></div>
 
+<div id="gapOvl"><div id="gapBox">
+  <h2>🛏️ Długa przerwa w danych</h2>
+  <p id="gapTxt"></p>
+  <button class="btn" id="gapYes">Tak — to był odpoczynek</button>
+  <button class="btn ghost" id="gapNo" style="margin-top:8px">Nie — uzupełnię wpisy</button>
+</div></div>
 <div id="toast"></div>
 
 <script>
@@ -563,7 +584,7 @@ function analyze(events, now, settings={}){
     contWork:0, workBreakAcc:0, workDeadline:null, dayWork:0, dayBreakSum:0,
     nightTouched:false, nightWin:[0,4],
     period:{start:null, drive:0, deadlineFull:null, deadlineRed:null, extendedToday:false},
-    reducedDailyUsed:0, extUsedThisWeek:0,
+    reducedDailyUsed:0, extUsedThisWeek:0, extDeclared:false,
     weekDrive:{}, weeklyRests:[], compensations:[],
     lastWeeklyEnd:null, nextWeeklyLatestStart:null,
     lastQualRestEnd:null, currentSeg:null, dayDriveHistory:[]
@@ -761,8 +782,16 @@ function analyze(events, now, settings={}){
   R.nightTouched=nightT; R.nightWin=[ns,ns+4];
   if(nightT && dayWork>L.NIGHT10)
     add('viol','NIGHT10',`Bieżąca dniówka zahacza o porę nocną (${String(ns).padStart(2,'0')}:00–${String(ns+4).padStart(2,'0')}:00) i przekroczyła 10h pracy (${fmtHM(dayWork)}) — art. 21 ustawy.`, now);
+  /* deklaracja „+1h" (przycisk przy tarczy) — aktywuje 10h dla bieżącej doby i od razu zużywa pulę */
+  const extDecl=(settings.extDecl||[]).some(t=>t>=pStart&&t<=now+MIN);
+  if(extDecl && !extendedToday && (extWeek[weekKey(now)]||0)<L.EXT_PER_WEEK){
+    extWeek[weekKey(now)]=(extWeek[weekKey(now)]||0)+1;
+    extendedToday=true;
+  }
+  R.extDeclared = extDecl && extendedToday;
+  R.extUsedThisWeek = extWeek[weekKey(now)]||0;
   R.extAvailable = (extWeek[weekKey(now)]||0) < L.EXT_PER_WEEK;
-  R.dayDriveLimit = R.extAvailable ? L.DAILY_DRIVE_EXT : L.DAILY_DRIVE;
+  R.dayDriveLimit = (extendedToday || R.extAvailable) ? L.DAILY_DRIVE_EXT : L.DAILY_DRIVE;
   R.redAvailable = reducedSinceWeekly < L.RED_BETWEEN_WEEKLY;
 
   return R;
@@ -1096,6 +1125,24 @@ const TR_PAIRS=[
 [", zmienisz w Ustawieniach), praca między dwoma odpoczynkami może trwać max <b>10 h</b>. Dziś: ",", change it in Settings), work between two rests may last max <b>10 h</b>. Today: "],
 ["<b>dotyczy</b> — masz ","<b>applies</b> — you have "],
 [". To limit pracy (jazda+inna), niezależny od limitów jazdy z 561/2006.",". It caps work (driving+other), independent of the 561/2006 driving limits."],
+["<b>limit dzienny wyczerpany</b> (","<b>daily limit used up</b> ("],
+[") — rozpocznij odpoczynek dobowy",") — start your daily rest"],
+[" — ogranicza limit dzienny ("," — capped by the daily limit ("],
+["limit 4:30","4:30 limit"],
+["jazda ciągła","continuous driving"],
+["Długa przerwa w danych","Long gap in the data"],
+["Tak — to był odpoczynek","Yes — it was rest"],
+["Nie — uzupełnię wpisy","No — I'll add entries"],
+["Od ostatniego wpisu minęło <b>","Since the last entry, <b>"],
+[" h</b>. Traktuję ten czas jako odpoczynek"," h</b> have passed. I treat this time as rest"],
+[" tygodniowy"," (weekly)"],
+[" i od niego liczę świeże limity. Jeśli w międzyczasie była jazda lub praca — uzupełnij wpisy."," and count fresh limits from it. If there was any driving or work in between — add the entries."],
+["Odpoczynek potwierdzony ✓","Rest confirmed ✓"],
+["Wydłużenie już wykorzystane jazdą — nie można cofnąć","Extension already consumed by driving — cannot undo"],
+["Wydłużenie 10h cofnięte","10h extension cancelled"],
+["Brak wolnych wydłużeń w tym tygodniu","No extensions left this week"],
+["Limit dziś: 10h ✓","Today's limit: 10h ✓"],
+[" • dziś 10h ✓"," • today 10h ✓"],
 ];
 TR_PAIRS.sort((a,b)=>b[0].length-a[0].length);
 function tr(s){ if(LANG!=='en'||!s) return s; for(const p of TR_PAIRS) s=s.split(p[0]).join(p[1]); return s; }
@@ -1206,6 +1253,14 @@ function sevClass(deadline,now){const left=deadline-now;
 
 function renderToday(R,now){
   setDial(R.contDrive);
+  const eb=$('extBtn');
+  if(eb){
+    const extLeft=Math.max(0,L.EXT_PER_WEEK-R.extUsedThisWeek);
+    eb.className=extLeft===2?'g':extLeft===1?'o':'r';
+    if(R.extDeclared) eb.classList.add('onx');
+    eb.disabled=(extLeft===0&&!R.extDeclared);
+    eb.textContent=R.extDeclared?'10h ✓':'+1h';
+  }
   // podpowiedź pod tarczą
   const cur=R.currentSeg;
   if(cur&&cur.type==='rest'){
@@ -1215,10 +1270,18 @@ function renderToday(R,now){
     else $('contHint').innerHTML=tr(`trwa przerwa: <b>${fmtHMs(d)}</b> — ${R.partial15?'wystarczy 30 min':'pełne 45 min'} zaliczysz o <b>${fmtClock(cur.start+need*MIN)}</b>`);
   } else if(R.contDrive>=L.CONT_DRIVE){
     $('contHint').innerHTML=tr(`limit 4:30 przekroczony — <b>natychmiast rozpocznij przerwę 45 min</b>`);
-  } else if(R.contDrive>0){
-    $('contHint').innerHTML=tr(`możesz jechać jeszcze <b>${fmtHMs(L.CONT_DRIVE-R.contDrive)}</b> — przerwę zacznij najpóźniej o <b>${fmtClock(R.breakDeadline)}</b>`+(R.partial15?` <span style="color:var(--green)">(15 min zaliczone → wystarczy 30)</span>`:''));
   } else {
-    $('contHint').innerHTML=tr(`licznik czysty — pełne <b>4:30</b> jazdy do dyspozycji`);
+    const contLeft=L.CONT_DRIVE-R.contDrive;
+    const dayLeft=Math.max(0,R.dayDriveLimit-R.dayDrive);
+    if(dayLeft<=0){
+      $('contHint').innerHTML='<span style="color:var(--arc-r)">'+tr(`<b>limit dzienny wyczerpany</b> (${fmtHMs(R.dayDrive)} / ${fmtHMs(R.dayDriveLimit)}) — rozpocznij odpoczynek dobowy`)+'</span>';
+    } else if(dayLeft<contLeft){
+      $('contHint').innerHTML=tr(`możesz jechać jeszcze <b>${fmtHMs(dayLeft)}</b> — ogranicza limit dzienny (${fmtHMs(R.dayDrive)} / ${fmtHMs(R.dayDriveLimit)})`);
+    } else if(R.contDrive>0){
+      $('contHint').innerHTML=tr(`możesz jechać jeszcze <b>${fmtHMs(contLeft)}</b> — przerwę zacznij najpóźniej o <b>${fmtClock(R.breakDeadline)}</b>`+(R.partial15?` <span style="color:var(--green)">(15 min zaliczone → wystarczy 30)</span>`:''));
+    } else {
+      $('contHint').innerHTML=tr(`licznik czysty — pełne <b>4:30</b> jazdy do dyspozycji`);
+    }
   }
   // baner bieżącej aktywności
   const nb=$('nowBanner');
@@ -1253,7 +1316,7 @@ function renderToday(R,now){
      <div class="bar-cap"><span>0</span><span>9h</span><span>10h</span></div>
      <div class="row"><span class="k">Dziś przejechane</span><span class="v amb">${fmtHMs(dd)}</span></div>
      <div class="row"><span class="k">Możesz jeszcze</span><span class="v ${left<=0?'bad':left<60?'warn':'ok'}">${left>0?fmtHMs(left):'0:00 — STOP'}</span></div>
-     <div class="row"><span class="k">Wydłużenia do 10h (ten tydz.)</span><span class="v ${R.extUsedThisWeek>=2?'warn':''}">${R.extUsedThisWeek} / 2 ${R.extAvailable?'':' — limit dziś: 9h'}</span></div>`);
+     <div class="row"><span class="k">Wydłużenia do 10h (ten tydz.)</span><span class="v ${R.extUsedThisWeek>=2?'bad':R.extUsedThisWeek===1?'orange':'ok'}">${R.extUsedThisWeek} / 2${R.extDeclared?' • dziś 10h ✓':(R.extAvailable?'':' — limit dziś: 9h')}</span></div>`);
 
   // Odpoczynek dobowy
   const p=R.period;
@@ -1674,6 +1737,17 @@ function showAlarm(kind,left,deadline){
   clearTimeout(showAlarm._h); showAlarm._h=setTimeout(()=>$('alarmOvl').classList.remove('show'),45000);
 }
 $('alarmOk').onclick=()=>{clearTimeout(showAlarm._h);$('alarmOvl').classList.remove('show');};
+function checkGapAck(){
+  const ev=[...state.events].sort((a,b)=>a.start-b.start);
+  if(!ev.length) return;
+  const last=ev[ev.length-1];
+  if(!last.end) return;
+  const gapH=(Date.now()-last.end)/3600000;
+  if(gapH>=24 && state.gapAck!==last.end){
+    $('gapTxt').innerHTML=tr(`Od ostatniego wpisu minęło <b>${Math.floor(gapH)} h</b>. Traktuję ten czas jako odpoczynek${gapH>=45?' tygodniowy':''} i od niego liczę świeże limity. Jeśli w międzyczasie była jazda lub praca — uzupełnij wpisy.`);
+    $('gapOvl').style.display='flex';
+  }
+}
 function checkAlarms(R){
   if(R.contDrive===0) alarmFired={};
   if(R.contWork===0) alarmFiredW={};
@@ -1951,6 +2025,32 @@ document.querySelectorAll('.sw[data-alarm]').forEach(s=>s.onclick=()=>{
 document.querySelectorAll('#themeSeg button').forEach(b=>b.onclick=()=>{
   state.settings.theme=b.dataset.th; save(); applyTheme(); renderBackupStats();
 });
+$('gapYes').onclick=()=>{
+  const ev=[...state.events].sort((a,b)=>a.start-b.start);
+  state.gapAck=ev.length?(ev[ev.length-1].end||0):0;
+  save(); $('gapOvl').style.display='none'; toast('Odpoczynek potwierdzony ✓');
+};
+$('gapNo').onclick=()=>{
+  const ev=[...state.events].sort((a,b)=>a.start-b.start);
+  const last=ev[ev.length-1];
+  state.gapAck=last?(last.end||0):0; save();
+  $('gapOvl').style.display='none';
+  document.querySelector('nav button[data-tab="log"]').click();
+  openModal(null);
+  if(last&&last.end) $('mStart').value=toLocal(last.end);
+};
+$('extBtn').onclick=()=>{
+  const R=lastR||analyze(state.events,Date.now(),state.settings);
+  if(R.extDeclared){
+    if(R.dayDrive>540){ toast('Wydłużenie już wykorzystane jazdą — nie można cofnąć'); return; }
+    state.settings.extDecl=(state.settings.extDecl||[]).filter(t=>!(R.period.start&&t>=R.period.start));
+    save(); renderAll(); toast('Wydłużenie 10h cofnięte'); return;
+  }
+  if(R.extUsedThisWeek>=L.EXT_PER_WEEK){ toast('Brak wolnych wydłużeń w tym tygodniu'); return; }
+  state.settings.extDecl=[...(state.settings.extDecl||[]),Date.now()].slice(-8);
+  save(); renderAll();
+  toast('Limit dziś: 10h ✓');
+};
 document.querySelectorAll('#langSeg button').forEach(b=>b.onclick=()=>{
   state.settings.lang=b.dataset.lg; save(); applyLang(); renderBackupStats(); renderAll();
 });
@@ -1974,6 +2074,7 @@ applyTheme();
 applyLang();
 buildDial();
 renderAll();
+checkGapAck();
 setInterval(tick,1000);
 if('serviceWorker' in navigator && location.protocol.indexOf('http')===0){ navigator.serviceWorker.register('sw.js').catch(()=>{}); }
 </script>
