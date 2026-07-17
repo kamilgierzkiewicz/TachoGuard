@@ -259,6 +259,8 @@ nav .badge{position:absolute;top:1px;right:calc(50% - 20px);min-width:16px;heigh
 #alarmOvl.show{display:flex}
 #alarmBox{background:var(--glass);-webkit-backdrop-filter:blur(26px) saturate(160%);backdrop-filter:blur(26px) saturate(160%);border:2px solid var(--amber);border-radius:26px;padding:26px 22px calc(22px + env(safe-area-inset-bottom)/2);max-width:420px;width:100%;text-align:center;animation:alarmPulse 1.1s ease infinite}
 #alarmBox.crit{border-color:var(--red);animation-name:alarmPulseR}
+#alarmBox.okA{border-color:var(--arc-g);animation:none;box-shadow:inset 0 1px 0 var(--glass-hi),0 0 44px -8px var(--arc-g)}
+#alarmBox.okA #alarmTitle{background:linear-gradient(180deg,var(--arc-g-hi),var(--arc-g));-webkit-background-clip:text;background-clip:text}
 @keyframes alarmPulse{0%,100%{box-shadow:0 0 0 0 rgba(255,176,32,.5)}50%{box-shadow:0 0 0 20px rgba(255,176,32,0)}}
 @keyframes alarmPulseR{0%,100%{box-shadow:0 0 0 0 rgba(255,90,90,.55)}50%{box-shadow:0 0 0 20px rgba(255,90,90,0)}}
 #alarmBox .abig{font-size:2.5rem;margin-bottom:4px}
@@ -407,6 +409,8 @@ nav .badge{position:absolute;top:1px;right:calc(50% - 20px);min-width:16px;heigh
     <div class="switch"><div class="txt">15 min przed limitem</div><div class="sw" data-alarm="15"></div></div>
     <div class="switch"><div class="txt">5 min przed limitem</div><div class="sw" data-alarm="5"></div></div>
     <div class="switch"><div class="txt">Limit osiągnięty <small>czerwony alarm „PRZERWA — TERAZ!"</small></div><div class="sw" data-alarm="0"></div></div>
+    <div class="switch"><div class="txt">Koniec wymaganej przerwy <small>zielony sygnał „możesz ruszać" po 45/30 min</small></div><div class="sw" data-alarm-done></div></div>
+    <div class="switch"><div class="txt">Dźwięk alarmów <small>iPhone: pierwszy dotyk ekranu po starcie odblokowuje audio</small></div><div class="sw" data-alarm-snd></div></div>
   </div>
   <div class="card">
     <h3>Wygląd</h3>
@@ -1143,6 +1147,15 @@ const TR_PAIRS=[
 ["Brak wolnych wydłużeń w tym tygodniu","No extensions left this week"],
 ["Limit dziś: 10h ✓","Today's limit: 10h ✓"],
 [" • dziś 10h ✓"," • today 10h ✓"],
+["PRZERWA ZALICZONA ✓","BREAK COMPLETED ✓"],
+["Wymagane <b>","The required <b>"],
+[" min</b> odebrane — licznik jazdy ciągłej i reguła 6h wyzerowane. Możesz ruszać."," min</b> taken — continuous-driving counter and the 6h rule are reset. You may roll."],
+["Koniec wymaganej przerwy","Required break completed"],
+["zielony sygnał „możesz ruszać\" po 45/30 min","green \"you may roll\" signal after 45/30 min"],
+["Dźwięk alarmów","Alarm sounds"],
+["iPhone: pierwszy dotyk ekranu po starcie odblokowuje audio","iPhone: the first screen tap after launch unlocks audio"],
+["Sygnał końca przerwy ","End-of-break signal "],
+["Dźwięk ","Sound "],
 ];
 TR_PAIRS.sort((a,b)=>b[0].length-a[0].length);
 function tr(s){ if(LANG!=='en'||!s) return s; for(const p of TR_PAIRS) s=s.split(p[0]).join(p[1]); return s; }
@@ -1706,25 +1719,41 @@ function renderGuide(){ $('guideBody').innerHTML = (LANG==='en'? GUIDE_EN : GUID
 
 /* ================= ALARMY PRZERWY (30/15/5/0 min) ================= */
 const ALARM_AT=[30,15,5,0];
-let alarmFired={}, alarmFiredW={}, audioCtx=null, wakeLock=null;
+let alarmFired={}, alarmFiredW={}, breakDoneKey=null, audioCtx=null, wakeLock=null;
 function unlockAudio(){ try{ if(!audioCtx) audioCtx=new (window.AudioContext||window.webkitAudioContext)();
   if(audioCtx.state==='suspended') audioCtx.resume(); }catch(e){} }
 document.addEventListener('touchend',unlockAudio,{passive:true});
 document.addEventListener('click',unlockAudio);
-function beep(n,freq){ try{ if(!audioCtx) return; if(audioCtx.state==='suspended') audioCtx.resume();
-  let t=audioCtx.currentTime+0.05;
-  for(let i=0;i<n;i++){ const o=audioCtx.createOscillator(),g=audioCtx.createGain();
-    o.type='sine'; o.frequency.value=freq; o.connect(g); g.connect(audioCtx.destination);
-    g.gain.setValueAtTime(0.0001,t); g.gain.exponentialRampToValueAtTime(0.5,t+0.02);
-    g.gain.exponentialRampToValueAtTime(0.0001,t+0.28); o.start(t); o.stop(t+0.3); t+=0.42; } }catch(e){}
+function tone(f,dur,at,vol,type){ const o=audioCtx.createOscillator(),g=audioCtx.createGain();
+  o.type=type||'sine'; o.frequency.value=f; o.connect(g); g.connect(audioCtx.destination);
+  g.gain.setValueAtTime(0.0001,at); g.gain.exponentialRampToValueAtTime(vol||0.35,at+0.02);
+  g.gain.exponentialRampToValueAtTime(0.0001,at+dur); o.start(at); o.stop(at+dur+0.05);
 }
+function chime(kind){ try{
+  if(state.settings.alarmSnd===false) return;
+  if(!audioCtx) return;
+  if(audioCtx.state==='suspended') audioCtx.resume();
+  const t=audioCtx.currentTime+0.05;
+  if(kind==='crit'){        /* pilny: 4× dwuton opadający */
+    for(let i=0;i<4;i++){ tone(988,0.16,t+i*0.26,0.4,'square'); tone(659,0.16,t+i*0.26+0.12,0.4,'square'); }
+  } else if(kind==='done'){ /* koniec przerwy: wznosząca fanfara C-E-G-C */
+    tone(523,0.16,t); tone(659,0.16,t+0.15); tone(784,0.2,t+0.3); tone(1047,0.34,t+0.48,0.38);
+  } else {                  /* ostrzeżenie: dwa piknięcia + wyższy akcent */
+    tone(880,0.14,t); tone(880,0.14,t+0.22); tone(1175,0.22,t+0.46);
+  }
+}catch(e){} }
 function showAlarm(kind,left,deadline){
-  const crit=left<=0, isW=kind==='work';
+  const done=kind==='done', crit=!done&&left<=0, isW=kind==='work';
   $('alarmBox').classList.toggle('crit',crit);
-  $('alarmTitle').textContent = tr(crit
-    ? (isW?'PRZERWA W PRACY — TERAZ!':'PRZERWA — TERAZ!')
-    : (isW?'Przerwa w pracy za '+Math.round(left)+' min':'Przerwa za '+Math.round(left)+' min'));
-  $('alarmText').innerHTML = tr(crit
+  $('alarmBox').classList.toggle('okA',done);
+  $('alarmTitle').textContent = tr(done
+    ? 'PRZERWA ZALICZONA ✓'
+    : crit
+      ? (isW?'PRZERWA W PRACY — TERAZ!':'PRZERWA — TERAZ!')
+      : (isW?'Przerwa w pracy za '+Math.round(left)+' min':'Przerwa za '+Math.round(left)+' min'));
+  $('alarmText').innerHTML = tr(done
+    ? 'Wymagane <b>'+left+' min</b> odebrane — licznik jazdy ciągłej i reguła 6h wyzerowane. Możesz ruszać.'
+    : crit
     ? (isW
       ? 'Minęło <b>6 h pracy</b> (jazda + inna praca) bez wymaganej przerwy. Odpocznij <b>≥30 min</b> — pełna przerwa 45 z tachografu też załatwia sprawę.'
       : 'Limit <b>4:30</b> jazdy ciągłej osiągnięty. Zatrzymaj się przy najbliższej okazji i ustaw odpoczynek — <b>45 min</b> (lub 30, jeśli masz zaliczone 15).')
@@ -1732,9 +1761,9 @@ function showAlarm(kind,left,deadline){
       ? 'Zbliżasz się do <b>6 h pracy</b> łącznie (jazda + inna praca).<br>Przerwę ≥30 min zacznij najpóźniej o <b>'+fmtClock(deadline)+'</b>.'
       : 'Zbliżasz się do limitu 4:30 jazdy ciągłej.<br>Przerwę zacznij najpóźniej o <b>'+fmtClock(deadline)+'</b>.'));
   $('alarmOvl').classList.add('show');
-  beep(crit?5:3, crit?988:880);
-  if(navigator.vibrate) navigator.vibrate(crit?[300,120,300,120,300]:[200,100,200]);
-  clearTimeout(showAlarm._h); showAlarm._h=setTimeout(()=>$('alarmOvl').classList.remove('show'),45000);
+  chime(done?'done':crit?'crit':'warn');
+  if(navigator.vibrate) navigator.vibrate(done?[120,60,120]:crit?[300,120,300,120,300]:[200,100,200]);
+  clearTimeout(showAlarm._h); showAlarm._h=setTimeout(()=>$('alarmOvl').classList.remove('show'),done?25000:45000);
 }
 $('alarmOk').onclick=()=>{clearTimeout(showAlarm._h);$('alarmOvl').classList.remove('show');};
 function checkGapAck(){
@@ -1753,6 +1782,15 @@ function checkAlarms(R){
   if(R.contWork===0) alarmFiredW={};
   const cur=R.currentSeg;
   if(!cur) return;
+  if(cur.type==='rest'){
+    const d=Math.round((Date.now()-cur.start)/MIN);
+    const need=R.partial15? L.BREAK_P2 : L.BREAK_FULL;
+    if(d>=need && breakDoneKey!==cur.start){
+      breakDoneKey=cur.start;
+      if(state.settings.alarmDone!==false) showAlarm('done',need,0);
+    }
+    return;
+  }
   const en=state.settings.alarms||{};
   let trigD=false, trigW=false, leftD=0, leftW=0;
   if(cur.type==='drive'){                            // licznik 4:30 rośnie tylko w jeździe
@@ -1964,6 +2002,8 @@ function renderBackupStats(){
   $('swIntl').classList.toggle('on',!!state.settings.international);
   const en=state.settings.alarms||{};
   document.querySelectorAll('.sw[data-alarm]').forEach(s=>s.classList.toggle('on',en[s.dataset.alarm]!==false));
+  document.querySelectorAll('.sw[data-alarm-done]').forEach(s=>s.classList.toggle('on',state.settings.alarmDone!==false));
+  document.querySelectorAll('.sw[data-alarm-snd]').forEach(s=>s.classList.toggle('on',state.settings.alarmSnd!==false));
   const thm=(state.settings&&state.settings.theme)||'auto';
   document.querySelectorAll('#themeSeg button').forEach(b=>b.classList.toggle('sel',b.dataset.th===thm));
   const am=(state.settings&&state.settings.aiModelMode)||'top';
@@ -2039,6 +2079,15 @@ $('gapNo').onclick=()=>{
   openModal(null);
   if(last&&last.end) $('mStart').value=toLocal(last.end);
 };
+document.querySelectorAll('.sw[data-alarm-done]').forEach(s=>s.onclick=()=>{
+  state.settings.alarmDone=state.settings.alarmDone===false; save(); renderBackupStats();
+  toast('Sygnał końca przerwy '+(state.settings.alarmDone!==false?'włączony':'wyłączony'));
+});
+document.querySelectorAll('.sw[data-alarm-snd]').forEach(s=>s.onclick=()=>{
+  state.settings.alarmSnd=state.settings.alarmSnd===false; save(); renderBackupStats(); unlockAudio();
+  if(state.settings.alarmSnd!==false) chime('done');
+  toast('Dźwięk '+(state.settings.alarmSnd!==false?'włączony':'wyłączony'));
+});
 $('extBtn').onclick=()=>{
   const R=lastR||analyze(state.events,Date.now(),state.settings);
   if(R.extDeclared){
