@@ -1138,7 +1138,7 @@ const TR_PAIRS=[
 ["Tak — to był odpoczynek","Yes — it was rest"],
 ["Nie — uzupełnię wpisy","No — I'll add entries"],
 ["Od ostatniego wpisu minęło <b>","Since the last entry, <b>"],
-[" h</b>. Traktuję ten czas jako odpoczynek"," h</b> have passed. I treat this time as rest"],
+[" h</b>. Traktuję ten czas jako odpoczynek"," h</b> have passed. I treat this time as a"],
 [" tygodniowy"," (weekly)"],
 [" i od niego liczę świeże limity. Jeśli w międzyczasie była jazda lub praca — uzupełnij wpisy."," and count fresh limits from it. If there was any driving or work in between — add the entries."],
 ["Odpoczynek potwierdzony ✓","Rest confirmed ✓"],
@@ -1170,6 +1170,24 @@ const TR_PAIRS=[
 [" — licznik jazdy ciągłej i reguła 6h wyzerowane. Możesz ruszać."," — the continuous-driving counter and the 6h rule are reset. You may roll."],
 ["Gdyby to był postój na dobę: 9h o <b>","If this stop is your daily rest: 9h at <b>"],
 ["</b> • 11h o <b>","</b> • 11h at <b>"],
+[" — obejmuje sobotę i niedzielę, więc traktuję go jako <b>odpoczynek weekendowy</b> ("," — it covers Saturday and Sunday, so I treat it as a <b>weekend rest</b> ("],
+["tygodniowy regularny (45h+)","regular weekly (45h+)"],
+["tygodniowy skrócony (24h+)","reduced weekly (24h+)"],
+["; pamiętaj o rekompensacie","; remember the compensation"],
+[" — to weekend, ale <b>za krótko na tygodniowy</b>: do 24h brakuje "," — it's the weekend, but <b>too short for a weekly rest</b>: "],
+[" h (liczę jako dobowy)."," h short of 24h (counted as daily)."],
+[". Traktuję ten czas jako odpoczynek ",". I treat this time as a "],
+["dobowy","daily"],
+[" Od niego liczę świeże limity. Jeśli w międzyczasie była jazda lub praca — uzupełnij wpisy."," I count fresh limits from it. If there was any driving or work in between — add the entries."],
+[" — obejmuje sobotę i niedzielę, więc traktuję go jako <b>odpoczynek weekendowy</b> ("," — it covers Saturday and Sunday, so I treat it as a <b>weekend rest</b> ("],
+["tygodniowy regularny (45h+)","regular weekly (45h+)"],
+["tygodniowy skrócony (24h+)","reduced weekly (24h+)"],
+["; pamiętaj o rekompensacie","; remember the compensation"],
+[" — to weekend, ale <b>za krótko na tygodniowy</b>: do 24h brakuje "," — it's the weekend, but <b>too short for a weekly rest</b>: still "],
+[" h (liczę jako dobowy)."," h short of 24h (counting it as daily)."],
+[". Traktuję ten czas jako odpoczynek ",". I treat this time as a "],
+["dobowy.","daily rest."],
+[" Od niego liczę świeże limity. Jeśli w międzyczasie była jazda lub praca — uzupełnij wpisy."," I count fresh limits from it. If there was any driving or work in between — add the entries."],
 ];
 TR_PAIRS.sort((a,b)=>b[0].length-a[0].length);
 function tr(s){ if(LANG!=='en'||!s) return s; for(const p of TR_PAIRS) s=s.split(p[0]).join(p[1]); return s; }
@@ -1765,7 +1783,6 @@ function showDone(title,html){
   $('alarmOvl').classList.add('show');
   chime('done');
   if(navigator.vibrate) navigator.vibrate([120,60,120]);
-  clearTimeout(showAlarm._h); showAlarm._h=setTimeout(()=>$('alarmOvl').classList.remove('show'),25000);
 }
 function showAlarm(kind,left,deadline){
   const done=kind==='done', crit=!done&&left<=0, isW=kind==='work';
@@ -1788,17 +1805,35 @@ function showAlarm(kind,left,deadline){
   $('alarmOvl').classList.add('show');
   chime(done?'done':crit?'crit':'warn');
   if(navigator.vibrate) navigator.vibrate(done?[120,60,120]:crit?[300,120,300,120,300]:[200,100,200]);
-  clearTimeout(showAlarm._h); showAlarm._h=setTimeout(()=>$('alarmOvl').classList.remove('show'),done?25000:45000);
 }
-$('alarmOk').onclick=()=>{clearTimeout(showAlarm._h);$('alarmOvl').classList.remove('show');};
+$('alarmOk').onclick=()=>$('alarmOvl').classList.remove('show');
+function spansWeekend(a,b){ /* czy przedzial obejmuje fragment soboty ORAZ nastepujacej niedzieli */
+  for(let t=new Date(a); t.getTime()<b; t=new Date(t.getTime()+6*3600e3)){
+    if(t.getDay()===6){
+      const sun=new Date(t); sun.setHours(24,0,0,0);
+      if(sun.getTime()<b) return true;
+    }
+  }
+  return false;
+}
 function checkGapAck(){
   const ev=[...state.events].sort((a,b)=>a.start-b.start);
   if(!ev.length) return;
   const last=ev[ev.length-1];
   if(!last.end) return;
   const gapH=(Date.now()-last.end)/3600000;
-  if(gapH>=24 && state.gapAck!==last.end){
-    $('gapTxt').innerHTML=tr(`Od ostatniego wpisu minęło <b>${Math.floor(gapH)} h</b>. Traktuję ten czas jako odpoczynek${gapH>=45?' tygodniowy':''} i od niego liczę świeże limity. Jeśli w międzyczasie była jazda lub praca — uzupełnij wpisy.`);
+  const wkend=spansWeekend(last.end,Date.now());
+  if((gapH>=24 || (wkend && gapH>=9)) && state.gapAck!==last.end){
+    const lbl = gapH>=45 ? 'tygodniowy regularny (45h+)' : gapH>=24 ? 'tygodniowy skrócony (24h+)' : 'dobowy';
+    let gmsg = `Od ostatniego wpisu minęło <b>${Math.floor(gapH)} h</b>`;
+    if(wkend && gapH>=24)
+      gmsg += ` — obejmuje sobotę i niedzielę, więc traktuję go jako <b>odpoczynek weekendowy</b> (${lbl}${gapH<45?'; pamiętaj o rekompensacie':''}).`;
+    else if(wkend)
+      gmsg += ` — to weekend, ale <b>za krótko na tygodniowy</b>: do 24h brakuje ${Math.ceil(24-gapH)} h (liczę jako dobowy).`;
+    else
+      gmsg += `. Traktuję ten czas jako odpoczynek ${lbl}.`;
+    gmsg += ' Od niego liczę świeże limity. Jeśli w międzyczasie była jazda lub praca — uzupełnij wpisy.';
+    $('gapTxt').innerHTML=tr(gmsg);
     $('gapOvl').style.display='flex';
   }
 }
@@ -2146,7 +2181,7 @@ document.querySelectorAll('.act[data-act],#mSeg button').forEach(b=>{const t=b.d
 }
 
 let ORIG_HTML=null;
-const I18N_SCOPES=['nav','#tab-settings','#tab-backup','#modal','#tab-ask','.acts','#stopBtn','.dial-sub','.legend','#tab-log .hint-inline','#addBtn','#tab-today .card h3'];
+const I18N_SCOPES=['nav','#tab-settings','#tab-backup','#modal','#tab-ask','.acts','#stopBtn','.dial-sub','.legend','#tab-log .hint-inline','#addBtn','#tab-today .card h3','#alarmOk','#gapBox h2','#gapYes','#gapNo'];
 function applyLang(){
   LANG=(state.settings&&state.settings.lang)||'pl';
   document.documentElement.lang=LANG;
