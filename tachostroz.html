@@ -114,6 +114,10 @@ main{padding:16px 16px 8px;max-width:560px;margin:0 auto}
   background:linear-gradient(180deg,#3E4C7E,#222A48);border:1px solid rgba(255,255,255,.15);
   box-shadow:inset 0 1px 0 rgba(255,255,255,.18),0 6px 16px rgba(0,0,0,.35);transition:transform .08s ease}
 .endday:active{transform:translateY(1px)}
+.startday{width:100%;margin-top:10px;padding:15px;border-radius:18px;font-weight:800;letter-spacing:.05em;color:#20340A;
+  background:linear-gradient(180deg,#CDE89A,#A7CE6B);border:1px solid rgba(0,0,0,.10);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.45),0 6px 16px rgba(0,0,0,.22);transition:transform .08s ease}
+.startday:active{transform:translateY(1px)}
 .big-go .v b{font-size:1.12em}
 .tbadge{display:block;margin-top:3px;font-family:var(--mono);font-size:.68rem;font-weight:600;color:var(--mut);letter-spacing:.02em;min-height:1em}
 .act.on .tbadge{color:var(--ink)}
@@ -359,6 +363,7 @@ window.addEventListener('unhandledrejection',function(e){try{
     <button class="act act-rest" data-act="rest"><span class="t">Odpoczynek</span><span class="tbadge" data-tb="rest"></span></button>
     <button class="stop" id="stopBtn">■ ZAKOŃCZ BIEŻĄCĄ AKTYWNOŚĆ</button>
     <button class="endday" id="endDayBtn">🌙 Zakończ dzień — rozpocznij odpoczynek</button>
+    <button class="startday" id="startDayBtn" style="display:none">☀️ Rozpocznij dzień — od pracy (przegląd, dokumenty)</button>
   </div>
 
   <div id="assist"></div>
@@ -871,7 +876,7 @@ const fmtHMs=m=>{m=Math.max(0,Math.round(m));return Math.floor(m/60)+':'+pad(m%6
 const DAYS=['niedziela','poniedziałek','wtorek','środa','czwartek','piątek','sobota'];
 function toLocalInput(ms){const d=new Date(ms);return d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate())+'T'+pad(d.getHours())+':'+pad(d.getMinutes());}
 function toast(msg){const t=document.getElementById('toast');t.textContent=tr(msg);t.classList.add('show');clearTimeout(t._h);t._h=setTimeout(()=>t.classList.remove('show'),2400);}
-const APP_VER='v2026-07-21i';
+const APP_VER='v2026-07-21k';
 const $=id=>document.getElementById(id);
 
 /* ================= I18N ================= */
@@ -1258,6 +1263,7 @@ const TR_PAIRS=[
 ["10h po 45′","10h after 45′"],
 [" • 10h po przerwie 45′"," • 10h after a 45′ break"],
 ["Zarezerwowane — 10h aktywne po przerwie 45 min (jak w tachografie)","Reserved — 10h activates after a 45-min break (tachograph-style)"],
+["☀️ Rozpocznij dzień — od pracy (przegląd, dokumenty)","☀️ Start the day — with work (checks, paperwork)"],
 ];
 TR_PAIRS.sort((a,b)=>b[0].length-a[0].length);
 function tr(s){ if(LANG!=='en'||!s) return s; for(const p of TR_PAIRS) s=s.split(p[0]).join(p[1]); return s; }
@@ -1451,6 +1457,7 @@ function renderToday(R,now){
       +((R.contDrive>0&&rd<45)?`<div class="row"><span class="k">Reset 4:30 i 6h (przerwa 45 min)</span>${cds(t45)}</div>`:''));
   }
   const edb=$('endDayBtn'); if(edb) edb.style.display=(rcur&&rcur.type==='rest')?'none':'';
+  const sdb=$('startDayBtn'); if(sdb) sdb.style.display=(rcur&&rcur.type==='rest'&&(now-rcur.start)/MIN>=L.DAILY_REST_RED)?'':'none';
   A+=assistCard('Przerwa w pracy — reguła 6 h','var(--yellow)',
     `<div class="row"><span class="k">Praca dziś łącznie (jazda + inna)</span><span class="v" style="font-family:var(--mono);font-weight:600">${fmtHMs(R.dayWork)}</span></div>`
     +(R.workRuleDone
@@ -2274,6 +2281,7 @@ document.querySelectorAll('.sw[data-alarm-snd]').forEach(s=>s.onclick=()=>{
   toast('Dźwięk '+(state.settings.alarmSnd!==false?'włączony':'wyłączony'));
 });
 $('endDayBtn').onclick=()=>startAct('rest');
+$('startDayBtn').onclick=()=>startAct('work');
 $('extBtn').onclick=()=>{
   const R=lastR||analyze(state.events,Date.now(),state.settings);
   if(R.extDeclared){
@@ -2296,7 +2304,7 @@ document.querySelectorAll('.act[data-act],#mSeg button').forEach(b=>{const t=b.d
 }
 
 let ORIG_HTML=null;
-const I18N_SCOPES=['nav','#tab-settings','#tab-backup','#modal','#tab-ask','.acts','#stopBtn','#endDayBtn','.dial-sub','.legend','#tab-log .hint-inline','#addBtn','#tab-today .card h3','#alarmOk','#gapBox h2','#gapYes','#gapNo'];
+const I18N_SCOPES=['nav','#tab-settings','#tab-backup','#modal','#tab-ask','.acts','#stopBtn','#endDayBtn','#startDayBtn','.dial-sub','.legend','#tab-log .hint-inline','#addBtn','#tab-today .card h3','#alarmOk','#gapBox h2','#gapYes','#gapNo'];
 function applyLang(){
   LANG=(state.settings&&state.settings.lang)||'pl';
   document.documentElement.lang=LANG;
