@@ -443,6 +443,7 @@ nav .badge{position:absolute;top:1px;right:calc(50% - 20px);min-width:16px;heigh
     <h3>Instalacja — iPhone i Android</h3>
     <p class="hint-inline" style="margin:0"><b>iPhone:</b> Safari → <kbd>Udostępnij</kbd> → <kbd>Do ekranu początkowego</kbd>. <b>Android:</b> Chrome → <kbd>⋮</kbd> → <kbd>Zainstaluj aplikację</kbd> (lub „Dodaj do ekranu głównego"). Dzięki plikom <code>manifest.json</code> i <code>sw.js</code> z repo obie platformy działają pełnoekranowo i offline.</p>
   </div>
+  <div class="hint-inline" style="text-align:center;opacity:.55;margin:14px 0 6px">TachoStróż · <span id="appVer"></span></div>
 </section>
 
 <!-- ============ BACKUP ============ -->
@@ -639,7 +640,7 @@ function analyze(events, now, settings={}){
   pStart = firstAct ? firstAct.start : segs[0].start;
 
   const ns=(settings&&settings.nightStart!=null)?+settings.nightStart:0;
-  let splitP1=false, nightT=false, dayDrive=0, dayWork=0, dayBreak=0, extWeek={}, reducedSinceWeekly=0, extendedToday=false;
+  let splitP1=false, nightT=false, dayDrive=0, dayWork=0, dayBreak=0, extWeek={}, reducedSinceWeekly=0, extendedToday=false, preRestStart=0;
   const closeDay=(endRest, kind)=>{
     R.dayDriveHistory.push({start:pStart, end:endRest.start, drive:dayDrive, work:dayWork, kind});
     if(dayWork>L.WLONG && dayBreak<L.WBRK_LONG)
@@ -656,6 +657,7 @@ function analyze(events, now, settings={}){
       if(extWeek[wk]>L.EXT_PER_WEEK) add('viol','EXT',`Trzecie wydłużenie jazdy do 10h w tygodniu ${weekLabel(wk)} — dozwolone są 2.`, endRest.start);
       else add('info','EXTUSE',`Wykorzystano wydłużenie jazdy do 10h (${extWeek[wk]}/2 w tygodniu od ${weekLabel(wk)}): ${fmtHM(dayDrive)}.`, endRest.start);
     }
+    preRestStart=endRest.start;
     pStart=endRest.end; dayDrive=0; dayWork=0; dayBreak=0; splitP1=false; nightT=false;
   };
 
@@ -788,13 +790,20 @@ function analyze(events, now, settings={}){
   R.nightTouched=nightT; R.nightWin=[ns,ns+4];
   if(nightT && dayWork>L.NIGHT10)
     add('viol','NIGHT10',`Bieżąca dniówka zahacza o porę nocną (${String(ns).padStart(2,'0')}:00–${String(ns+4).padStart(2,'0')}:00) i przekroczyła 10h pracy (${fmtHM(dayWork)}) — art. 21 ustawy.`, now);
+  /* bieżąca (otwarta) dniówka: przekroczenie 9h jazdy księguje wydłużenie od razu */
+  if(dayDrive>L.DAILY_DRIVE && !extendedToday){
+    const wkc=weekKey(pStart);
+    extWeek[wkc]=(extWeek[wkc]||0)+1;
+    extendedToday=true;
+  }
   /* deklaracja „+1h" (przycisk przy tarczy) — aktywuje 10h dla bieżącej doby i od razu zużywa pulę */
-  const extDecl=(settings.extDecl||[]).some(t=>t>=pStart&&t>=weekStart(now)&&t<=now+MIN);
-  if(extDecl && !extendedToday && (extWeek[weekKey(now)]||0)<L.EXT_PER_WEEK){
-    extWeek[weekKey(now)]=(extWeek[weekKey(now)]||0)+1;
+  const extDecl=(settings.extDecl||[]).some(t=>t>=(preRestStart||0) && t<=now+MIN);
+  if(extDecl && !extendedToday && (extWeek[weekKey(pStart)]||0)<L.EXT_PER_WEEK){
+    extWeek[weekKey(pStart)]=(extWeek[weekKey(pStart)]||0)+1;
     extendedToday=true;
   }
   R.extDeclared = extDecl && extendedToday;
+  R.preRestStart = preRestStart||0;
   R.extUsedThisWeek = extWeek[weekKey(now)]||0;
   R.extAvailable = (extWeek[weekKey(now)]||0) < L.EXT_PER_WEEK;
   R.dayDriveLimit = (extendedToday || R.extAvailable) ? L.DAILY_DRIVE_EXT : L.DAILY_DRIVE;
@@ -831,6 +840,7 @@ const fmtHMs=m=>{m=Math.max(0,Math.round(m));return Math.floor(m/60)+':'+pad(m%6
 const DAYS=['niedziela','poniedziałek','wtorek','środa','czwartek','piątek','sobota'];
 function toLocalInput(ms){const d=new Date(ms);return d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate())+'T'+pad(d.getHours())+':'+pad(d.getMinutes());}
 function toast(msg){const t=document.getElementById('toast');t.textContent=tr(msg);t.classList.add('show');clearTimeout(t._h);t._h=setTimeout(()=>t.classList.remove('show'),2400);}
+const APP_VER='v2026-07-21d';
 const $=id=>document.getElementById(id);
 
 /* ================= I18N ================= */
@@ -1306,7 +1316,7 @@ function renderToday(R,now){
     eb.className=extLeft===2?'g':extLeft===1?'o':'r';
     if(R.extDeclared) eb.classList.add('onx');
     eb.disabled=(extLeft===0&&!R.extDeclared);
-    eb.textContent=R.extDeclared?'10h ✓':'+1h';
+    eb.textContent=R.extDeclared?'10h ✓':('+1h ×'+extLeft);
   }
   /* czasy per aktywność w bieżącej dobie pracowniczej */
   (function(){
@@ -2185,7 +2195,7 @@ $('extBtn').onclick=()=>{
   const R=lastR||analyze(state.events,Date.now(),state.settings);
   if(R.extDeclared){
     if(R.dayDrive>540){ toast('Wydłużenie już wykorzystane jazdą — nie można cofnąć'); return; }
-    state.settings.extDecl=(state.settings.extDecl||[]).filter(t=>!(R.period.start&&t>=R.period.start));
+    state.settings.extDecl=(state.settings.extDecl||[]).filter(t=>t<(R.preRestStart||R.period.start||0));
     save(); renderAll(); toast('Wydłużenie 10h cofnięte'); return;
   }
   if(R.extUsedThisWeek>=L.EXT_PER_WEEK){ toast('Brak wolnych wydłużeń w tym tygodniu'); return; }
@@ -2212,6 +2222,7 @@ function applyLang(){
 }
 
 load();
+$('appVer').textContent=APP_VER;
 applyTheme();
 applyLang();
 buildDial();
