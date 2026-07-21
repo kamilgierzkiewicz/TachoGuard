@@ -876,7 +876,7 @@ const fmtHMs=m=>{m=Math.max(0,Math.round(m));return Math.floor(m/60)+':'+pad(m%6
 const DAYS=['niedziela','poniedziałek','wtorek','środa','czwartek','piątek','sobota'];
 function toLocalInput(ms){const d=new Date(ms);return d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate())+'T'+pad(d.getHours())+':'+pad(d.getMinutes());}
 function toast(msg){const t=document.getElementById('toast');t.textContent=tr(msg);t.classList.add('show');clearTimeout(t._h);t._h=setTimeout(()=>t.classList.remove('show'),2400);}
-const APP_VER='v2026-07-21k';
+const APP_VER='v2026-07-21l';
 const $=id=>document.getElementById(id);
 
 /* ================= I18N ================= */
@@ -1457,7 +1457,7 @@ function renderToday(R,now){
       +((R.contDrive>0&&rd<45)?`<div class="row"><span class="k">Reset 4:30 i 6h (przerwa 45 min)</span>${cds(t45)}</div>`:''));
   }
   const edb=$('endDayBtn'); if(edb) edb.style.display=(rcur&&rcur.type==='rest')?'none':'';
-  const sdb=$('startDayBtn'); if(sdb) sdb.style.display=(rcur&&rcur.type==='rest'&&(now-rcur.start)/MIN>=L.DAILY_REST_RED)?'':'none';
+  const sdb=$('startDayBtn'); if(sdb) sdb.style.display=(rcur&&rcur.type==='rest'&&(now-rcur.start)/MIN>=545)?'':'none'; /* prog 9:05 */
   A+=assistCard('Przerwa w pracy — reguła 6 h','var(--yellow)',
     `<div class="row"><span class="k">Praca dziś łącznie (jazda + inna)</span><span class="v" style="font-family:var(--mono);font-weight:600">${fmtHMs(R.dayWork)}</span></div>`
     +(R.workRuleDone
