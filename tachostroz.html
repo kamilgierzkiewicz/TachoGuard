@@ -114,6 +114,7 @@ main{padding:16px 16px 8px;max-width:560px;margin:0 auto}
   background:linear-gradient(180deg,#3E4C7E,#222A48);border:1px solid rgba(255,255,255,.15);
   box-shadow:inset 0 1px 0 rgba(255,255,255,.18),0 6px 16px rgba(0,0,0,.35);transition:transform .08s ease}
 .endday:active{transform:translateY(1px)}
+#extBtn.disw{opacity:.42;filter:grayscale(.6)}
 .startday{width:100%;margin-top:10px;padding:15px;border-radius:18px;font-weight:800;letter-spacing:.05em;color:#20340A;
   background:linear-gradient(180deg,#CDE89A,#A7CE6B);border:1px solid rgba(0,0,0,.10);
   box-shadow:inset 0 1px 0 rgba(255,255,255,.45),0 6px 16px rgba(0,0,0,.22);transition:transform .08s ease}
@@ -734,6 +735,7 @@ function analyze(events, now, settings={}){
   const needEnd = splitP1?L.SPLIT_P2:null;
   R.period.deadlineFull = pStart + (L.SHIFT_WINDOW - (needEnd||L.DAILY_REST_REG))*MIN;
   R.period.deadlineRed  = pStart + (L.SHIFT_WINDOW - (needEnd||L.DAILY_REST_RED))*MIN;
+  R.windowLeftRed = Math.max(0, (R.period.deadlineRed - now)/MIN);   // ile jeszcze można JECHAĆ/PRACOWAĆ nim trzeba wejść na 9h
   R.reducedDailyUsed=reducedSinceWeekly;
   if(now > pStart+L.SHIFT_WINDOW*MIN && segs.some(s=>s.type!=='rest'&&s.end>pStart))
     add('viol','DREST',`Bieżąca doba (od ${fmtT(pStart)}) przekroczyła 24h bez zakończonego odpoczynku dobowego.`, now);
@@ -876,7 +878,7 @@ const fmtHMs=m=>{m=Math.max(0,Math.round(m));return Math.floor(m/60)+':'+pad(m%6
 const DAYS=['niedziela','poniedziałek','wtorek','środa','czwartek','piątek','sobota'];
 function toLocalInput(ms){const d=new Date(ms);return d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate())+'T'+pad(d.getHours())+':'+pad(d.getMinutes());}
 function toast(msg){const t=document.getElementById('toast');t.textContent=tr(msg);t.classList.add('show');clearTimeout(t._h);t._h=setTimeout(()=>t.classList.remove('show'),2400);}
-const APP_VER='v2026-07-21l';
+const APP_VER='v2026-07-22a';
 const $=id=>document.getElementById(id);
 
 /* ================= I18N ================= */
@@ -1264,6 +1266,10 @@ const TR_PAIRS=[
 [" • 10h po przerwie 45′"," • 10h after a 45′ break"],
 ["Zarezerwowane — 10h aktywne po przerwie 45 min (jak w tachografie)","Reserved — 10h activates after a 45-min break (tachograph-style)"],
 ["☀️ Rozpocznij dzień — od pracy (przegląd, dokumenty)","☀️ Start the day — with work (checks, paperwork)"],
+["<b>okno dobowe 15h zamknięte</b> — musisz rozpocząć odpoczynek 9h","<b>15h daily window closed</b> — you must start a 9h rest"],
+["możesz jechać jeszcze <b>","you can still drive <b>"],
+["</b> — ogranicza <b>okno dobowe 15h</b>, odpoczynek 9h zacznij do <b>","</b> — limited by the <b>15h daily window</b>, start a 9h rest by <b>"],
+["okno 15h","15h window"],
 ];
 TR_PAIRS.sort((a,b)=>b[0].length-a[0].length);
 function tr(s){ if(LANG!=='en'||!s) return s; for(const p of TR_PAIRS) s=s.split(p[0]).join(p[1]); return s; }
@@ -1380,7 +1386,9 @@ function renderToday(R,now){
     eb.className=extLeft===2?'g':extLeft===1?'o':'r';
     if(R.extDeclared) eb.classList.add('onx');
     eb.disabled=(extLeft===0&&!R.extDeclared);
-    eb.textContent=R.extDeclared?(R.extPending?'10h po 45′':'10h ✓'):('+1h ×'+extLeft);
+    const winBlocks = (R.windowLeftRed||0) < (Math.max(0,R.dayDriveLimit-R.dayDrive)+60);  // okno nie da 10. godziny
+    eb.textContent=R.extDeclared?(R.extPending?'10h po 45′':'10h ✓'):(winBlocks&&!R.extDeclared?'okno 15h':('+1h ×'+extLeft));
+    eb.classList.toggle('disw', winBlocks&&!R.extDeclared);
   }
   /* czasy per aktywność w bieżącej dobie pracowniczej */
   (function(){
@@ -1413,11 +1421,19 @@ function renderToday(R,now){
   } else {
     const contLeft=L.CONT_DRIVE-R.contDrive;
     const dayLeft=Math.max(0,R.dayDriveLimit-R.dayDrive);
+    const winLeft=Math.max(0,Math.floor(R.windowLeftRed||0));   // okno dobowe 15h
+    // prawdziwy zapas jazdy to najmniejszy z trzech: ciągła, dzienna, OKNO
     if(dayLeft<=0){
       $('contHint').innerHTML='<span style="color:var(--arc-r)">'+tr(`<b>limit dzienny wyczerpany</b> (${fmtHMs(R.dayDrive)} / ${fmtHMs(R.dayDriveLimit)}) — rozpocznij odpoczynek dobowy`)+'</span>';
+    } else if(winLeft<=0){
+      $('contHint').innerHTML='<span style="color:var(--arc-r)">'+tr(`<b>okno dobowe 15h zamknięte</b> — musisz rozpocząć odpoczynek 9h`)+'</span>';
+    } else if(winLeft<=dayLeft && winLeft<=contLeft){
+      // OKNO jest najciaśniejsze — to ono dyktuje koniec dnia
+      $('contHint').innerHTML='<span style="color:var(--arc-o)">'+tr(`możesz jechać jeszcze <b>${fmtHMs(winLeft)}</b> — ogranicza <b>okno dobowe 15h</b>, odpoczynek 9h zacznij do <b>${fmtClock(R.period.deadlineRed)}</b>`)+'</span>';
     } else if(dayLeft<contLeft){
       $('contHint').innerHTML=tr(`możesz jechać jeszcze <b>${fmtHMs(dayLeft)}</b> — ogranicza limit dzienny (${fmtHMs(R.dayDrive)} / ${fmtHMs(R.dayDriveLimit)})`);
-    } else if(dayLeft<=60 && R.extLatent){
+    } else if(dayLeft<=60 && R.extLatent && winLeft>dayLeft+60){
+      // +1h kusimy TYLKO gdy okno faktycznie da wykorzystać tę godzinę
       $('contHint').innerHTML=tr(`możesz jechać jeszcze <b>${fmtHMs(dayLeft)}</b> do limitu 9h — <b>＋1h</b> przy tarczy podniesie do 10h`);
     } else if(R.contDrive>0){
       $('contHint').innerHTML=tr(`możesz jechać jeszcze <b>${fmtHMs(contLeft)}</b> — przerwę zacznij najpóźniej o <b>${fmtClock(R.breakDeadline)}</b>`+(R.partial15?` <span style="color:var(--green)">(15 min zaliczone → wystarczy 30)</span>`:''));
