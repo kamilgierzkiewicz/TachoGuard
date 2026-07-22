@@ -26,7 +26,7 @@
   --glass-hi:rgba(255,255,255,.12); --glass-sh:0 12px 34px rgba(0,0,0,.45);
   --blob1:rgba(255,176,32,.13); --blob2:rgba(87,184,216,.11);
   --amber:#FFB020; --green:#34D07C; --red:#FF5A5A; --yellow:#FFD466; --blue:#57B8D8;
-  --c-drive:#FFB020; --c-work:#8A97AD; --c-poa:#57B8D8; --c-rest:#34D07C;
+  --c-drive:#FFB020; --c-work:#8A97AD; --c-poa:#57B8D8; --c-rest:#34D07C; --c-out:#B08CFF;
   --mono:'Candela','Inter',ui-monospace,'SF Mono',Menlo,monospace;
   --sans:'Inter',-apple-system,BlinkMacSystemFont,'Helvetica Neue',Arial,sans-serif;
   --rad:20px;
@@ -42,7 +42,7 @@ html[data-theme="light"]{
   --glass-hi:rgba(255,255,255,.95); --glass-sh:0 12px 30px rgba(23,32,46,.16);
   --blob1:rgba(221,146,0,.17); --blob2:rgba(14,116,144,.13);
   --amber:#C77F00; --green:#118A4E; --red:#D4382F; --yellow:#8F6A00; --blue:#0E7490;
-  --c-drive:#DD9200; --c-work:#5C6A7E; --c-poa:#1A87A8; --c-rest:#1B9A58;
+  --c-drive:#DD9200; --c-work:#5C6A7E; --c-poa:#1A87A8; --c-rest:#1B9A58; --c-out:#7A4FD0;
   color-scheme:light;
 }
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
@@ -137,6 +137,9 @@ main{padding:16px 16px 8px;max-width:560px;margin:0 auto}
 .ev .ic .eico{font-size:19px}
 .act.on{border-color:currentColor;box-shadow:inset 0 0 0 1px currentColor,inset 0 1px 0 var(--glass-hi),0 0 20px -6px currentColor}
 .act.on::after{content:'TRWA';font-size:.6rem;letter-spacing:.14em;font-weight:700;opacity:.9}
+.act-out{grid-column:1/-1;flex-direction:row;justify-content:center;gap:10px;padding:11px 8px;color:var(--c-out);
+  border-color:color-mix(in srgb,var(--c-out) 45%,transparent)}
+.act-out.on{box-shadow:inset 0 0 0 2px var(--c-out)}
 .act-drive{color:var(--c-drive)} .act-work{color:var(--c-work)}
 .act-poa{color:var(--c-poa)} .act-rest{color:var(--c-rest)}
 .act .t{color:var(--ink)}
@@ -362,6 +365,7 @@ window.addEventListener('unhandledrejection',function(e){try{
     <button class="act act-work" data-act="work"><span class="t">Inna praca</span><span class="tbadge" data-tb="work"></span></button>
     <button class="act act-poa" data-act="poa"><span class="t">Dyspozycja</span><span class="tbadge" data-tb="poa"></span></button>
     <button class="act act-rest" data-act="rest"><span class="t">Odpoczynek</span><span class="tbadge" data-tb="rest"></span></button>
+    <button class="act act-out" data-act="out"><span class="t">OUT — poza zakresem</span><span class="tbadge" data-tb="out"></span></button>
     <button class="stop" id="stopBtn">■ ZAKOŃCZ BIEŻĄCĄ AKTYWNOŚĆ</button>
     <button class="endday" id="endDayBtn">🌙 Zakończ dzień — rozpocznij odpoczynek</button>
     <button class="startday" id="startDayBtn" style="display:none">☀️ Rozpocznij dzień — od pracy (przegląd, dokumenty)</button>
@@ -377,6 +381,7 @@ window.addEventListener('unhandledrejection',function(e){try{
       <span><b style="background:var(--c-work)"></b>inna praca</span>
       <span><b style="background:var(--c-poa)"></b>dyspozycja</span>
       <span><b style="background:var(--c-rest)"></b>odpoczynek</span>
+      <span><b style="background:var(--c-out)"></b>OUT</span>
     </div>
   </div>
 </section>
@@ -509,6 +514,7 @@ window.addEventListener('unhandledrejection',function(e){try{
       <button data-t="work" class="s-work"><span class="t">Praca</span></button>
       <button data-t="poa" class="s-poa"><span class="t">Dysp.</span></button>
       <button data-t="rest" class="s-rest"><span class="t">Odpocz.</span></button>
+      <button data-t="out" class="s-out"><span class="t">OUT</span></button>
     </div></div>
   <div class="fld"><label class="lbl" for="mStart">Początek</label><input type="datetime-local" id="mStart"></div>
   <div class="fld"><label class="lbl" for="mEnd">Koniec</label><input type="datetime-local" id="mEnd">
@@ -653,7 +659,7 @@ function analyze(events, now, settings={}){
   pStart = firstAct ? firstAct.start : segs[0].start;
 
   const ns=(settings&&settings.nightStart!=null)?+settings.nightStart:0;
-  let splitP1=false, nightT=false, dayDrive=0, dayWork=0, dayBreak=0, extWeek={}, reducedSinceWeekly=0, extendedToday=false, preRestStart=0, w6cw=0, w6p15=false, w6viol=false, fbFull=0, fbP15=false;
+  let splitP1=false, nightT=false, dayOut=0, dayDrive=0, dayWork=0, dayBreak=0, extWeek={}, reducedSinceWeekly=0, extendedToday=false, preRestStart=0, w6cw=0, w6p15=false, w6viol=false, fbFull=0, fbP15=false;
   const closeDay=(endRest, kind)=>{
     R.dayDriveHistory.push({start:pStart, end:endRest.start, drive:dayDrive, work:dayWork, kind});
     if(dayWork>L.WLONG && dayBreak<L.WBRK_LONG)
@@ -671,13 +677,13 @@ function analyze(events, now, settings={}){
       else add('info','EXTUSE',`Wykorzystano wydłużenie jazdy do 10h (${extWeek[wk]}/2 w tygodniu od ${weekLabel(wk)}): ${fmtHM(dayDrive)}.`, endRest.start);
     }
     preRestStart=endRest.start;
-    pStart=endRest.end; dayDrive=0; dayWork=0; dayBreak=0; splitP1=false; nightT=false; w6cw=0; w6p15=false; w6viol=false; fbFull=0; fbP15=false;
+    pStart=endRest.end; dayOut=0; dayDrive=0; dayWork=0; dayBreak=0; splitP1=false; nightT=false; w6cw=0; w6p15=false; w6viol=false; fbFull=0; fbP15=false;
   };
 
   for(const s of segs){
     const d=mins(s.start,s.end);
-    if(s.type==='drive'||s.type==='work'){
-      if(s.type==='drive') dayDrive+=d; dayWork+=d; if(!nightT&&overlapsNight(s.start,s.end,ns)) nightT=true;
+    if(s.type==='drive'||s.type==='work'||s.type==='out'){
+      if(s.type==='drive') dayDrive+=d; if(s.type==='out') dayOut+=d; dayWork+=d; if(!nightT&&overlapsNight(s.start,s.end,ns)) nightT=true;
       w6cw+=d;
       if(dayBreak < (dayWork>L.WLONG?L.WBRK_LONG:L.WBRK) && w6cw>L.WORK6 && !w6viol){
         add('viol','W6H',`Ponad 6h pracy ciągłej (jazda + inna: ${fmtHM(w6cw)}) bez wymaganej przerwy dziennej — po 6h przysługuje min 30 min (45 przy >9h), w częściach ≥15 min (art. 13).`, s.end);
@@ -811,7 +817,7 @@ function analyze(events, now, settings={}){
   const lastSeg=segs[segs.length-1];
   R.currentSeg = lastSeg && lastSeg.open ? lastSeg : null;
   R.breakDeadline = now + (L.CONT_DRIVE - cd)*MIN;
-  R.dayDrive=dayDrive; R.dayWork=dayWork; R.dayBreakSum=dayBreak;
+  R.dayDrive=dayDrive; R.dayWork=dayWork; R.dayBreakSum=dayBreak; R.dayOut=dayOut;
   const w6need = dayWork>L.WLONG ? L.WBRK_LONG : L.WBRK;
   R.workBreakNeed=w6need;
   R.workRuleDone = dayBreak>=w6need;
@@ -863,13 +869,15 @@ const TYPES={
   drive:{name:'Jazda',color:'var(--c-drive)',hex:'#FFB020'},
   work:{name:'Inna praca',color:'var(--c-work)',hex:'#8A97AD'},
   poa:{name:'Dyspozycja',color:'var(--c-poa)',hex:'#57B8D8'},
-  rest:{name:'Odpoczynek',color:'var(--c-rest)',hex:'#34D07C'}
+  rest:{name:'Odpoczynek',color:'var(--c-rest)',hex:'#34D07C'},
+  out:{name:'OUT (poza zakresem)',color:'var(--c-out)',hex:'#B08CFF'}
 };
 const ICONS={
   drive:'<span class="eico">🛞</span>',
   work:'<span class="eico">🛠️</span>',
   poa:'<span class="eico">⏰</span>',
-  rest:'<span class="eico">🛏️</span>'
+  rest:'<span class="eico">🛏️</span>',
+  out:'<span class="eico" style="font-size:18px;font-weight:900;letter-spacing:.08em">OUT</span>'
 };
 const pad=n=>String(n).padStart(2,'0');
 const fmtClock=ms=>{const d=new Date(ms);return pad(d.getHours())+':'+pad(d.getMinutes());};
@@ -878,7 +886,7 @@ const fmtHMs=m=>{m=Math.max(0,Math.round(m));return Math.floor(m/60)+':'+pad(m%6
 const DAYS=['niedziela','poniedziałek','wtorek','środa','czwartek','piątek','sobota'];
 function toLocalInput(ms){const d=new Date(ms);return d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate())+'T'+pad(d.getHours())+':'+pad(d.getMinutes());}
 function toast(msg){const t=document.getElementById('toast');t.textContent=tr(msg);t.classList.add('show');clearTimeout(t._h);t._h=setTimeout(()=>t.classList.remove('show'),2400);}
-const APP_VER='v2026-07-22a';
+const APP_VER='v2026-07-22c';
 const $=id=>document.getElementById(id);
 
 /* ================= I18N ================= */
@@ -1270,6 +1278,17 @@ const TR_PAIRS=[
 ["możesz jechać jeszcze <b>","you can still drive <b>"],
 ["</b> — ogranicza <b>okno dobowe 15h</b>, odpoczynek 9h zacznij do <b>","</b> — limited by the <b>15h daily window</b>, start a 9h rest by <b>"],
 ["okno 15h","15h window"],
+["OUT — poza zakresem","OUT — out of scope"],
+["OUT (poza zakresem)","OUT (out of scope)"],
+["Tryb OUT aktywny — poza zakresem 561/2006","OUT mode active — outside the scope of 561/2006"],
+["Trwa OUT","OUT running"],
+["OUT w tej dobie","OUT in this day"],
+["Nie wlicza się do","Not counted towards"],
+["jazdy 4:30 • 9/10h • 56h","driving 4:30 • 9/10h • 56h"],
+["Wlicza się do","Counted towards"],
+["czasu pracy i okna 15h","work time and the 15h window"],
+["<b>TRYB OUT</b> — ta jazda nie wlicza się do limitów jazdy; <b>zakończ OUT</b> po powrocie","<b>OUT MODE</b> — this driving is not counted towards driving limits; <b>end OUT</b> when back in scope"],
+["Po powrocie do przewozu objętego przepisami <b>zakończ OUT</b> i przełącz na Jazdę. Warto zrobić wydruk z tachografu i opisać na odwrocie.","When back in scope <b>end OUT</b> and switch to Driving. It is worth printing the tachograph readout and describing it on the back."],
 ];
 TR_PAIRS.sort((a,b)=>b[0].length-a[0].length);
 function tr(s){ if(LANG!=='en'||!s) return s; for(const p of TR_PAIRS) s=s.split(p[0]).join(p[1]); return s; }
@@ -1392,7 +1411,7 @@ function renderToday(R,now){
   }
   /* czasy per aktywność w bieżącej dobie pracowniczej */
   (function(){
-    const per={drive:0,work:0,poa:0,rest:0};
+    const per={drive:0,work:0,poa:0,rest:0,out:0};
     const p0=R.period&&R.period.start;
     if(p0){
       let maxEnd=p0, open=false;
@@ -1411,7 +1430,9 @@ function renderToday(R,now){
   })();
   // podpowiedź pod tarczą
   const cur=R.currentSeg;
-  if(cur&&cur.type==='rest'){
+  if(cur&&cur.type==='out'){
+    $('contHint').innerHTML='<span style="color:var(--c-out)">'+tr(`<b>TRYB OUT</b> — ta jazda nie wlicza się do limitów jazdy; <b>zakończ OUT</b> po powrocie`)+'</span>';
+  } else if(cur&&cur.type==='rest'){
     const d=Math.round((now-cur.start)/MIN);
     let need = R.partial15? L.BREAK_P2 : L.BREAK_FULL;
     if(d>=need) $('contHint').innerHTML=tr(`przerwa zaliczona ✓ — licznik jazdy wyzerowany`);
@@ -1460,6 +1481,15 @@ function renderToday(R,now){
 
   // Przerwa w pracy — reguła 6h (praca = jazda + inna praca)
   const rcur=R.currentSeg;
+  if(rcur&&rcur.type==='out'){
+    const od=(now-rcur.start)/MIN;
+    A+=assistCard('Tryb OUT aktywny — poza zakresem 561/2006','var(--c-out)',
+      `<div class="row"><span class="k">Trwa OUT</span><span class="v" style="font-weight:700">${fmtHMs(od)}</span></div>`
+      +`<div class="row"><span class="k">OUT w tej dobie</span><span class="v">${fmtHMs(R.dayOut||0)}</span></div>`
+      +`<div class="row"><span class="k">Nie wlicza się do</span><span class="v ok">jazdy 4:30 • 9/10h • 56h</span></div>`
+      +`<div class="row"><span class="k">Wlicza się do</span><span class="v warn">czasu pracy i okna 15h</span></div>`
+      +`<div style="margin-top:8px;font-size:.85rem;opacity:.8;line-height:1.35">Po powrocie do przewozu objętego przepisami <b>zakończ OUT</b> i przełącz na Jazdę. Warto zrobić wydruk z tachografu i opisać na odwrocie.</div>`);
+  }
   if(rcur&&rcur.type==='rest'){
     const rd=(now-rcur.start)/MIN;
     const redOK=!R.splitP1 && (R.reducedDailyUsed||0)<3;
@@ -1981,7 +2011,7 @@ function checkAlarms(R){
   if(cur.type==='rest'){
     const d=Math.round((Date.now()-cur.start)/MIN);
     const need=R.partial15? L.BREAK_P2 : L.BREAK_FULL;
-    const fire=m=>{ if(d>=m && !doneFired[cur.start+'_'+m]){ doneFired[cur.start+'_'+m]=1; return true; } return false; };
+    const fire=m=>{ if(d>=m && d<m+2 && !doneFired[cur.start+'_'+m]){ doneFired[cur.start+'_'+m]=1; return true; } if(d>=m) doneFired[cur.start+'_'+m]=1; return false; };
     if(state.settings.alarmDone!==false){
       if(fire(660)){
         showDone('ODPOCZYNEK 11H ✓','Pełny odpoczynek dobowy odebrany. Świeże limity: <b>4:30</b> jazdy ciągłej i pełna dniówka przed Tobą.');
@@ -2007,7 +2037,7 @@ function checkAlarms(R){
       if(leftD<=th && !alarmFired[th]){ alarmFired[th]=true; if(en[th]!==false) trigD=true; }
     }
   }
-  if(cur.type==='drive'||cur.type==='work'){         // licznik 6h rośnie w jeździe i innej pracy
+  if(cur.type==='drive'||cur.type==='work'||cur.type==='out'){   // licznik 6h rośnie w jeździe, innej pracy i OUT
     leftW=L.WORK6-R.contWork;
     for(const th of ALARM_AT){
       if(leftW<=th && !alarmFiredW[th]){ alarmFiredW[th]=true; if(en[th]!==false) trigW=true; }
@@ -2018,7 +2048,7 @@ function checkAlarms(R){
 }
 /* Tryb jazdy: nie wygaszaj ekranu, żeby alarmy mogły zadziałać (iOS usypia karty w tle) */
 async function updateWakeLock(R){
-  const driving=R&&R.currentSeg&&(R.currentSeg.type==='drive'||R.currentSeg.type==='work');
+  const driving=R&&R.currentSeg&&(R.currentSeg.type==='drive'||R.currentSeg.type==='work'||R.currentSeg.type==='out');
   try{
     if(driving && !wakeLock && 'wakeLock' in navigator){
       wakeLock=await navigator.wakeLock.request('screen');
