@@ -115,6 +115,23 @@ main{padding:16px 16px 8px;max-width:560px;margin:0 auto}
   box-shadow:inset 0 1px 0 rgba(255,255,255,.18),0 6px 16px rgba(0,0,0,.35);transition:transform .08s ease}
 .endday:active{transform:translateY(1px)}
 #extBtn.disw{opacity:.42;filter:grayscale(.6)}
+.art12btn{width:100%;margin:8px 0 4px;padding:12px;border-radius:16px;font-weight:700;font-size:.9rem;
+  color:#EEE6FF;background:linear-gradient(180deg,#5B3FA0,#4A3184);border:1px solid rgba(176,140,255,.5);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.25),0 4px 12px rgba(0,0,0,.28);transition:transform .08s ease}
+.art12btn:active{transform:translateY(1px)}
+.art12btn.on{background:linear-gradient(180deg,#7A4FD0,#63409C);outline:2px solid rgba(255,255,255,.7);outline-offset:-4px}
+#a12Ovl{position:fixed;inset:0;background:rgba(4,6,10,.84);z-index:60;display:none;align-items:center;justify-content:center;padding:24px}
+#a12Ovl.show{display:flex}
+#a12Box{background:var(--glass);-webkit-backdrop-filter:blur(26px) saturate(160%);backdrop-filter:blur(26px) saturate(160%);
+  border:2px solid #B08CFF;border-radius:26px;padding:24px 20px calc(20px + env(safe-area-inset-bottom)/2);max-width:440px;width:100%}
+#a12Box h2{text-align:center;margin-bottom:6px;font-size:1.15rem}
+#a12Box .sub{text-align:center;font-size:.85rem;opacity:.8;margin-bottom:16px;line-height:1.4}
+.a12opt{width:100%;text-align:left;padding:14px;border-radius:16px;margin-bottom:10px;border:1px solid var(--glass-brd);
+  background:var(--glassL);color:var(--txt);transition:transform .06s ease}
+.a12opt:active{transform:scale(.98)}
+.a12opt b{font-size:1.02rem;color:#C4A6FF}
+.a12opt small{display:block;margin-top:3px;opacity:.75;font-size:.82rem;line-height:1.35}
+.a12warn{font-size:.8rem;opacity:.78;margin:4px 0 14px;line-height:1.4;padding:10px;border-radius:12px;background:rgba(176,140,255,.1)}
 .startday{width:100%;margin-top:10px;padding:15px;border-radius:18px;font-weight:800;letter-spacing:.05em;color:#20340A;
   background:linear-gradient(180deg,#CDE89A,#A7CE6B);border:1px solid rgba(0,0,0,.10);
   box-shadow:inset 0 1px 0 rgba(255,255,255,.45),0 6px 16px rgba(0,0,0,.22);transition:transform .08s ease}
@@ -354,6 +371,8 @@ window.addEventListener('unhandledrejection',function(e){try{
   </div>
   <div id="contHint"></div>
 
+  <button class="art12btn" id="art12Btn">🏠 Powrót na bazę (art. 12) — wydłuż jazdę</button>
+
   <div id="nowBanner">
     <span class="pulse"></span>
     <div class="info"><span id="nowLabel"></span><br><span class="lbl" id="nowSince"></span></div>
@@ -537,6 +556,14 @@ window.addEventListener('unhandledrejection',function(e){try{
   <button class="btn" id="gapYes">Tak — to był odpoczynek</button>
   <button class="btn ghost" id="gapNo" style="margin-top:8px">Nie — uzupełnię wpisy</button>
 </div></div>
+<div id="a12Ovl"><div id="a12Box">
+  <h2>🏠 Powrót na bazę — art. 12</h2>
+  <div class="sub">Odstępstwo <b>tylko wyjątkowo</b>, gdy niespodziewane zdarzenie nie pozwala dojechać na <b>odpoczynek tygodniowy</b> do bazy firmy lub domu.</div>
+  <div class="a12warn">⚠ Nie działa przy <b>podwójnej obsadzie</b>. Jazda ciągła <b>4:30 obowiązuje bez zmian</b>. Nadwyżkę odbierasz w ciągu <b>3 tygodni</b>. Krajowy limit <b>10h pracy w nocy</b> nadal wiąże.</div>
+  <button class="a12opt" data-a12="60"><b>＋1 godzina</b><small>Powrót na odpoczynek tygodniowy skrócony lub regularny. Limit jazdy dziennej i tygodniowej +1h.</small></button>
+  <button class="a12opt" data-a12="120"><b>＋2 godziny</b><small>Tylko na regularny (45h+). Wymaga przerwy 30 min przed dodatkową jazdą (45 min też spełnia). Limit +2h.</small></button>
+  <button class="btn ghost" id="a12Cancel" style="margin-top:4px">Anuluj</button>
+</div></div>
 <div id="toast"></div>
 
 <script>
@@ -659,7 +686,7 @@ function analyze(events, now, settings={}){
   pStart = firstAct ? firstAct.start : segs[0].start;
 
   const ns=(settings&&settings.nightStart!=null)?+settings.nightStart:0;
-  let splitP1=false, nightT=false, dayOut=0, dayDrive=0, dayWork=0, dayBreak=0, extWeek={}, reducedSinceWeekly=0, extendedToday=false, preRestStart=0, w6cw=0, w6p15=false, w6viol=false, fbFull=0, fbP15=false;
+  let splitP1=false, nightT=false, dayOut=0, dayDrive=0, dayWork=0, dayBreak=0, extWeek={}, reducedSinceWeekly=0, extendedToday=false, preRestStart=0, w6cw=0, w6p15=false, w6viol=false, fbFull=0, fbP15=false, breaks30=0;
   const closeDay=(endRest, kind)=>{
     R.dayDriveHistory.push({start:pStart, end:endRest.start, drive:dayDrive, work:dayWork, kind});
     if(dayWork>L.WLONG && dayBreak<L.WBRK_LONG)
@@ -677,7 +704,7 @@ function analyze(events, now, settings={}){
       else add('info','EXTUSE',`Wykorzystano wydłużenie jazdy do 10h (${extWeek[wk]}/2 w tygodniu od ${weekLabel(wk)}): ${fmtHM(dayDrive)}.`, endRest.start);
     }
     preRestStart=endRest.start;
-    pStart=endRest.end; dayOut=0; dayDrive=0; dayWork=0; dayBreak=0; splitP1=false; nightT=false; w6cw=0; w6p15=false; w6viol=false; fbFull=0; fbP15=false;
+    pStart=endRest.end; dayOut=0; dayDrive=0; dayWork=0; dayBreak=0; splitP1=false; nightT=false; w6cw=0; w6p15=false; w6viol=false; fbFull=0; fbP15=false; breaks30=0;
   };
 
   for(const s of segs){
@@ -695,6 +722,7 @@ function analyze(events, now, settings={}){
     if(d>=L.WCHUNK && d<L.SPLIT_P2) dayBreak+=d;   // przerwy ≥15 min liczone do puli dniówki
     if(d>=L.WBRK){ w6cw=0; w6p15=false; }
     else if(d>=L.WCHUNK){ if(w6p15){ w6cw=0; w6p15=false; } else w6p15=true; }
+    if(d>=L.BREAK_P2) breaks30++;                 // przerwa >=30 min (warunek +2h art.12)
     if(d>=L.BREAK_FULL){ fbFull++; fbP15=false; }
     else if(d>=L.BREAK_P2 && fbP15){ fbFull++; fbP15=false; }
     else if(d>=L.BREAK_P1){ fbP15=true; }
@@ -739,8 +767,9 @@ function analyze(events, now, settings={}){
   R.period.start=pStart; R.period.drive=dayDrive;
   R.period.splitP1=splitP1;
   const needEnd = splitP1?L.SPLIT_P2:null;
-  R.period.deadlineFull = pStart + (L.SHIFT_WINDOW - (needEnd||L.DAILY_REST_REG))*MIN;
-  R.period.deadlineRed  = pStart + (L.SHIFT_WINDOW - (needEnd||L.DAILY_REST_RED))*MIN;
+  const a12win = (settings.art12 && settings.art12.ts>=(pStart||0) && settings.art12.ts<=now+MIN) ? (settings.art12.add||0) : 0;
+  R.period.deadlineFull = pStart + (L.SHIFT_WINDOW - (needEnd||L.DAILY_REST_REG))*MIN + a12win*MIN;
+  R.period.deadlineRed  = pStart + (L.SHIFT_WINDOW - (needEnd||L.DAILY_REST_RED))*MIN + a12win*MIN;
   R.windowLeftRed = Math.max(0, (R.period.deadlineRed - now)/MIN);   // ile jeszcze można JECHAĆ/PRACOWAĆ nim trzeba wejść na 9h
   R.reducedDailyUsed=reducedSinceWeekly;
   if(now > pStart+L.SHIFT_WINDOW*MIN && segs.some(s=>s.type!=='rest'&&s.end>pStart))
@@ -754,9 +783,11 @@ function analyze(events, now, settings={}){
       wd[ws]=(wd[ws]||0)+mins(a,b); a=b; }
   }
   R.weekDrive=wd;
+  const a12wk = settings.art12 ? weekStart(settings.art12.ts) : null;   // tydzień, w którym użyto art.12
   const wks=Object.keys(wd).map(Number).sort((a,b)=>a-b);
   for(const w of wks){
-    if(wd[w]>L.WEEK_DRIVE) add('viol','WDRIVE',`Jazda w tygodniu od ${weekLabel(w)}: ${fmtHM(wd[w])} — limit 56h.`, w);
+    const lim = L.WEEK_DRIVE + (a12wk===w ? (settings.art12.add||0) : 0);  // +1h/+2h do 56h w tygodniu powrotu
+    if(wd[w]>lim) add('viol','WDRIVE',`Jazda w tygodniu od ${weekLabel(w)}: ${fmtHM(wd[w])} — limit ${fmtHM(lim)}.`, w);
   }
   for(let i=1;i<wks.length;i++){
     if(wks[i]-wks[i-1]===7*24*60*MIN){
@@ -847,8 +878,17 @@ function analyze(events, now, settings={}){
   // limit POKAZYWANY: bez deklaracji 9h; 10h dopiero po kliknięciu „+1h" (extDeclared).
   // Wyjątek: jeśli faktyczna jazda już przekroczyła 9h (auto-wydłużenie zaksięgowane wyżej), pokaż 10h,
   // by nie krzyczeć fałszywym przekroczeniem, gdy pula była wolna.
+  // ===== Art. 12 — powrót na bazę/do domu na odpoczynek tygodniowy =====
+  // settings.art12 = { ts, add:60|120 } — obowiązuje dla doby, w której ts >= start doby.
+  const a12 = settings.art12 && settings.art12.ts>=(preRestStart||0) && settings.art12.ts<=now+MIN ? settings.art12 : null;
+  R.art12 = a12 ? {add:a12.add} : null;
+  R.art12Add = a12 ? a12.add : 0;                      // 0 / 60 / 120 (min)
+  // przerwa 30 min przed dodatkową jazdą (dla +2h) — spełniona, jeśli w dobie padła przerwa >=30 (fbFull łapie 45; osobno licznik 30)
+  R.art12BreakOK = a12 ? (a12.add<=60 || fbFull>=1 || breaks30>=1) : true;
+
   R.fullBreaksToday = fbFull;
-  R.dayDriveLimit = ((R.extDeclared && fbFull>=1) || dayDrive>L.DAILY_DRIVE) ? L.DAILY_DRIVE_EXT : L.DAILY_DRIVE;
+  const baseDriveLimit = ((R.extDeclared && fbFull>=1) || dayDrive>L.DAILY_DRIVE) ? L.DAILY_DRIVE_EXT : L.DAILY_DRIVE;
+  R.dayDriveLimit = baseDriveLimit + R.art12Add;       // art.12 podnosi limit dzienny o 1h/2h
   R.extLatent = R.extAvailable && !R.extDeclared && dayDrive<=L.DAILY_DRIVE; // 10h w puli, niezadeklarowane
   R.extPending = R.extDeclared && fbFull===0 && dayDrive<=L.DAILY_DRIVE;     // zadeklarowane, czeka na przerwę 45
   R.redAvailable = reducedSinceWeekly < L.RED_BETWEEN_WEEKLY;
@@ -881,12 +921,13 @@ const ICONS={
 };
 const pad=n=>String(n).padStart(2,'0');
 const fmtClock=ms=>{const d=new Date(ms);return pad(d.getHours())+':'+pad(d.getMinutes());};
+const fmtDate=ms=>{const d=new Date(ms);return pad(d.getDate())+'.'+pad(d.getMonth()+1)+'.'+d.getFullYear();};
 const fmtDT=ms=>{const d=new Date(ms);return pad(d.getDate())+'.'+pad(d.getMonth()+1)+' '+fmtClock(ms);};
 const fmtHMs=m=>{m=Math.max(0,Math.round(m));return Math.floor(m/60)+':'+pad(m%60);};
 const DAYS=['niedziela','poniedziałek','wtorek','środa','czwartek','piątek','sobota'];
 function toLocalInput(ms){const d=new Date(ms);return d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate())+'T'+pad(d.getHours())+':'+pad(d.getMinutes());}
 function toast(msg){const t=document.getElementById('toast');t.textContent=tr(msg);t.classList.add('show');clearTimeout(t._h);t._h=setTimeout(()=>t.classList.remove('show'),2400);}
-const APP_VER='v2026-07-22c';
+const APP_VER='v2026-07-22d';
 const $=id=>document.getElementById(id);
 
 /* ================= I18N ================= */
@@ -1289,6 +1330,17 @@ const TR_PAIRS=[
 ["czasu pracy i okna 15h","work time and the 15h window"],
 ["<b>TRYB OUT</b> — ta jazda nie wlicza się do limitów jazdy; <b>zakończ OUT</b> po powrocie","<b>OUT MODE</b> — this driving is not counted towards driving limits; <b>end OUT</b> when back in scope"],
 ["Po powrocie do przewozu objętego przepisami <b>zakończ OUT</b> i przełącz na Jazdę. Warto zrobić wydruk z tachografu i opisać na odwrocie.","When back in scope <b>end OUT</b> and switch to Driving. It is worth printing the tachograph readout and describing it on the back."],
+["🏠 Powrót na bazę (art. 12) — wydłuż jazdę","🏠 Return to base (art. 12) — extend driving"],
+["🏠 Powrót na bazę — art. 12","🏠 Return to base — art. 12"],
+["🏠 Powrót na bazę — art. 12 aktywny","🏠 Return to base — art. 12 active"],
+["Wydłużenie jazdy","Driving extension"],
+["Limit jazdy dziś","Driving limit today"],
+["Przerwa 30 min przed dodatkową jazdą","30-min break before extra driving"],
+["baza / dom — odpoczynek tygodniowy","base / home — weekly rest"],
+["Zakończ / anuluj art. 12","End / cancel art. 12"],
+["＋1 godzina","＋1 hour"],
+["＋2 godziny","＋2 hours"],
+["Anuluj","Cancel"],
 ];
 TR_PAIRS.sort((a,b)=>b[0].length-a[0].length);
 function tr(s){ if(LANG!=='en'||!s) return s; for(const p of TR_PAIRS) s=s.split(p[0]).join(p[1]); return s; }
@@ -1409,6 +1461,11 @@ function renderToday(R,now){
     eb.textContent=R.extDeclared?(R.extPending?'10h po 45′':'10h ✓'):(winBlocks&&!R.extDeclared?'okno 15h':('+1h ×'+extLeft));
     eb.classList.toggle('disw', winBlocks&&!R.extDeclared);
   }
+  const a12b=$('art12Btn');
+  if(a12b){
+    a12b.classList.toggle('on', !!R.art12);
+    a12b.textContent = R.art12 ? ('🏠 Art. 12 aktywny — jazda +'+(R.art12Add===120?'2h':'1h')) : '🏠 Powrót na bazę (art. 12) — wydłuż jazdę';
+  }
   /* czasy per aktywność w bieżącej dobie pracowniczej */
   (function(){
     const per={drive:0,work:0,poa:0,rest:0,out:0};
@@ -1478,6 +1535,19 @@ function renderToday(R,now){
 
   /* --- karty asystenta --- */
   let A='';
+  if(R.art12){
+    const overGuard = R.dayDrive>L.DAILY_DRIVE_EXT ? '' : '';
+    const need2 = R.art12Add>=120;
+    A+=assistCard('🏠 Powrót na bazę — art. 12 aktywny','#B08CFF',
+      `<div class="row"><span class="k">Wydłużenie jazdy</span><span class="v" style="color:#C4A6FF;font-weight:700">+${R.art12Add===120?'2h':'1h'}</span></div>`
+      +`<div class="row"><span class="k">Limit jazdy dziś</span><span class="v">${fmtHMs(R.dayDriveLimit)} (${fmtHMs(R.dayDrive)} wykorzystane)</span></div>`
+      +(need2?`<div class="row"><span class="k">Przerwa 30 min przed dodatkową jazdą</span><span class="v ${R.art12BreakOK?'ok':'bad'}">${R.art12BreakOK?'zaliczona ✓':'WYMAGANA!'}</span></div>`:'')
+      +`<div class="row"><span class="k">Cel</span><span class="v warn">baza / dom — odpoczynek tygodniowy</span></div>`
+      +`<div class="row"><span class="k">Nadwyżkę odbierz do</span><span class="v">${fmtDate(now+21*864e5)} (3 tyg.)</span></div>`
+      +`<div style="margin-top:10px;padding:10px;border-radius:12px;background:rgba(176,140,255,.12);font-size:.84rem;line-height:1.4">
+         <b>Zrób wydruk z tachografu</b> i opisz go: <b>art. 12/561/2006 WE</b> + przyczyna odstępstwa. Bez opisu kontrola może podważyć przekroczenie.</div>`
+      +`<button class="btn ghost" onclick="endArt12()" style="margin-top:10px">Zakończ / anuluj art. 12</button>`);
+  }
 
   // Przerwa w pracy — reguła 6h (praca = jazda + inna praca)
   const rcur=R.currentSeg;
@@ -2328,6 +2398,23 @@ document.querySelectorAll('.sw[data-alarm-snd]').forEach(s=>s.onclick=()=>{
 });
 $('endDayBtn').onclick=()=>startAct('rest');
 $('startDayBtn').onclick=()=>startAct('work');
+$('art12Btn').onclick=()=>{
+  const R=lastR||analyze(state.events,Date.now(),state.settings);
+  if(R.art12){ endArt12(); return; }
+  $('a12Ovl').classList.add('show');
+};
+$('a12Cancel').onclick=()=>$('a12Ovl').classList.remove('show');
+document.querySelectorAll('.a12opt').forEach(b=>b.onclick=()=>{
+  const add=+b.dataset.a12;
+  state.settings.art12={ts:Date.now(), add};
+  save(); $('a12Ovl').classList.remove('show'); renderAll();
+  const Rn=analyze(state.events,Date.now(),state.settings);
+  if(add>=120 && !Rn.art12BreakOK) toast('Art. 12 +2h — najpierw zrób przerwę 30 min, potem jedź. Pamiętaj o wydruku!');
+  else toast('Art. 12 +'+(add===120?'2h':'1h')+' aktywne — jedź na bazę/dom. Zrób wydruk z opisem!');
+});
+window.endArt12=function(){
+  delete state.settings.art12; save(); renderAll(); toast('Art. 12 zakończony');
+};
 $('extBtn').onclick=()=>{
   const R=lastR||analyze(state.events,Date.now(),state.settings);
   if(R.extDeclared){
@@ -2350,7 +2437,7 @@ document.querySelectorAll('.act[data-act],#mSeg button').forEach(b=>{const t=b.d
 }
 
 let ORIG_HTML=null;
-const I18N_SCOPES=['nav','#tab-settings','#tab-backup','#modal','#tab-ask','.acts','#stopBtn','#endDayBtn','#startDayBtn','.dial-sub','.legend','#tab-log .hint-inline','#addBtn','#tab-today .card h3','#alarmOk','#gapBox h2','#gapYes','#gapNo'];
+const I18N_SCOPES=['nav','#tab-settings','#tab-backup','#modal','#tab-ask','.acts','#stopBtn','#endDayBtn','#startDayBtn','.dial-sub','.legend','#tab-log .hint-inline','#addBtn','#tab-today .card h3','#alarmOk','#gapBox h2','#gapYes','#gapNo','#a12Box','#art12Btn'];
 function applyLang(){
   LANG=(state.settings&&state.settings.lang)||'pl';
   document.documentElement.lang=LANG;
