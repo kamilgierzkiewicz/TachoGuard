@@ -934,7 +934,7 @@ const fmtHMs=m=>{m=Math.max(0,Math.round(m));return Math.floor(m/60)+':'+pad(m%6
 const DAYS=['niedziela','poniedziałek','wtorek','środa','czwartek','piątek','sobota'];
 function toLocalInput(ms){const d=new Date(ms);return d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate())+'T'+pad(d.getHours())+':'+pad(d.getMinutes());}
 function toast(msg){const t=document.getElementById('toast');t.textContent=tr(msg);t.classList.add('show');clearTimeout(t._h);t._h=setTimeout(()=>t.classList.remove('show'),2400);}
-const APP_VER='v2026-07-22g';
+const APP_VER='v2026-07-22h';
 const $=id=>document.getElementById(id);
 
 /* ================= I18N ================= */
@@ -1356,6 +1356,11 @@ const TR_PAIRS=[
 ["Limit nocny 10h za ","10h night cap in "],
 ["Praca zahaczyła o porę nocną, więc dniówka nie może przekroczyć <b>10 h</b> (art. 21 ustawy). Limit osiągnięty — <b>zakończ pracę i rozpocznij odpoczynek dobowy</b>. Przerwa tego nie odblokuje.","Work touched the night window, so the shift cannot exceed <b>10 h</b> (art. 21). Limit reached — <b>stop working and start a daily rest</b>. A break will not unlock it."],
 ["Zbliżasz się do <b>10 h pracy</b> (jazda + inna praca) przy dotkniętej porze nocnej.<br>Pracę zakończ najpóźniej o <b>","You are approaching <b>10 h of work</b> (driving + other work) with the night window touched.<br>Finish work by <b>"],
+["Możesz jeszcze <b>jechać</b>","You can still <b>drive</b>"],
+["Ogranicza","Limited by"],
+["Z samego limitu jazdy zostałoby","From the driving limit alone"],
+["limit pracy nocnej 10h","10h night work cap"],
+["okno dobowe 15h","15h daily window"],
 ];
 TR_PAIRS.sort((a,b)=>b[0].length-a[0].length);
 function tr(s){ if(LANG!=='en'||!s) return s; for(const p of TR_PAIRS) s=s.split(p[0]).join(p[1]); return s; }
@@ -1614,13 +1619,24 @@ function renderToday(R,now){
      <div class="row"><span class="k">Pora nocna ${String(R.nightWin[0]).padStart(2,'0')}:00–${String(R.nightWin[1]).padStart(2,'0')}:00</span><span class="v ${R.nightTouched?(R.dayWork>L.NIGHT10?'bad':'warn'):'ok'}">${R.nightTouched?'dotyczy → limit pracy 10h ('+fmtHMs(R.dayWork)+' / 10:00)':'nie dotyczy ✓'}</span></div>`);
 
   // Jazda dzienna
-  const dd=R.dayDrive, lim=R.dayDriveLimit, left=lim-dd;
+  const dd=R.dayDrive, lim=R.dayDriveLimit, left=Math.max(0,lim-dd);
+  // realny zapas JAZDY = limit jazdy przycięty limitem pracy nocnej (art.21) i oknem dobowym 15h
+  const nCap = R.nightWorkLeft==null ? Infinity : Math.max(0,R.nightWorkLeft);
+  const wCap = Math.max(0, Math.floor(R.windowLeftRed||0));
+  const effLeft = Math.max(0, Math.min(left, nCap, wCap));
+  const capped  = effLeft < left;
+  const binder  = !capped ? null : (nCap<=wCap ? 'limit pracy nocnej 10h' : 'okno dobowe 15h');
   const pct=Math.min(100,dd/L.DAILY_DRIVE_EXT*100);
   A+=assistCard('Jazda dzienna','var(--amber)',
     `<div class="bar"><i style="width:${pct}%" class="${dd>lim?'over':''}"></i><span class="mark" style="left:90%"></span></div>
      <div class="bar-cap"><span>0</span><span>9h</span><span>10h</span></div>
      <div class="row"><span class="k">Dziś przejechane</span><span class="v amb">${fmtHMs(dd)}</span></div>
-     <div class="row"><span class="k">Możesz jeszcze</span><span class="v ${left<=0?'bad':left<60?'warn':'ok'}">${left>0?fmtHMs(left):'0:00 — STOP'}</span></div>
+     <div class="row"><span class="k">Możesz jeszcze <b>jechać</b></span><span class="v ${effLeft<=0?'bad':effLeft<60?'warn':'ok'}">${effLeft>0?fmtHMs(effLeft):'0:00 — STOP'}</span></div>`
+    +(capped
+      ? `<div class="row"><span class="k">Ogranicza</span><span class="v warn">${binder}</span></div>
+     <div class="row"><span class="k">Z samego limitu jazdy zostałoby</span><span class="v" style="opacity:.7">${fmtHMs(left)}</span></div>`
+      : '')
+    +`
      <div class="row"><span class="k">Wydłużenia do 10h (ten tydz.)</span><span class="v ${R.extUsedThisWeek>=2?'bad':R.extUsedThisWeek===1?'orange':'ok'}">${R.extUsedThisWeek} / 2${R.extDeclared?(R.extPending?' • 10h po przerwie 45′':' • dziś 10h ✓'):(R.extLatent?' • dziś 9h (＋1h dostępne)':(R.extAvailable?'':' — limit dziś: 9h'))}</span></div>`);
 
   // Odpoczynek dobowy
