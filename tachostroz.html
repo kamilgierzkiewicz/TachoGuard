@@ -693,10 +693,15 @@ function analyze(events, now, settings={}){
       add('viol','W45',`Dzień pracy ${fmtHM(dayWork)} (>9h) z przerwami łącznie ${fmtHM(dayBreak)} — ustawa wymaga min 45 min (doba od ${fmtT(pStart)}).`, endRest.start);
     if(nightT && dayWork>L.NIGHT10)
       add('viol','NIGHT10',`Praca zahaczyła o porę nocną (${String(ns).padStart(2,'0')}:00–${String(ns+4).padStart(2,'0')}:00), a dniówka wyniosła ${fmtHM(dayWork)} — limit przy pracy nocnej to 10h między odpoczynkami (art. 21 ustawy).`, endRest.start);
-    // limity jazdy dziennej
+    // limity jazdy dziennej — z uwzglednieniem art. 12 (powrot na baze) zadeklarowanego w TEJ dobie
     const wk=weekKey(pStart);
-    if(dayDrive>L.DAILY_DRIVE_EXT){
-      add('viol','DDRIVE',`Jazda dzienna ${fmtHM(dayDrive)} — przekroczony nawet limit 10h (doba od ${fmtT(pStart)}).`, endRest.start);
+    const a12d = (settings.art12 && settings.art12.ts>=pStart && settings.art12.ts<=endRest.start) ? (settings.art12.add||0) : 0;
+    const ddLimit = L.DAILY_DRIVE_EXT + a12d;   // 10h (+1h/+2h art.12)
+    if(a12d && dayDrive>L.DAILY_DRIVE_EXT && dayDrive<=ddLimit){
+      add('info','ART12',`Art. 12 — powrót na bazę/dom: jazda dzienna ${fmtHM(dayDrive)} przy limicie ${fmtHM(ddLimit)} (10h +${a12d===120?'2h':'1h'}). Odbierz nadwyżkę ${fmtHM(dayDrive-L.DAILY_DRIVE_EXT)} w ciągu 3 tygodni. Wymagany wydruk z opisem.`, endRest.start);
+      extWeek[wk]=(extWeek[wk]||0)+1;
+    } else if(dayDrive>ddLimit){
+      add('viol','DDRIVE',`Jazda dzienna ${fmtHM(dayDrive)} — przekroczony limit ${fmtHM(ddLimit)}${a12d?' (10h + art. 12)':' (10h)'} (doba od ${fmtT(pStart)}).`, endRest.start);
       extWeek[wk]=(extWeek[wk]||0)+1;
     } else if(dayDrive>L.DAILY_DRIVE){
       extWeek[wk]=(extWeek[wk]||0)+1;
@@ -927,7 +932,7 @@ const fmtHMs=m=>{m=Math.max(0,Math.round(m));return Math.floor(m/60)+':'+pad(m%6
 const DAYS=['niedziela','poniedziałek','wtorek','środa','czwartek','piątek','sobota'];
 function toLocalInput(ms){const d=new Date(ms);return d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate())+'T'+pad(d.getHours())+':'+pad(d.getMinutes());}
 function toast(msg){const t=document.getElementById('toast');t.textContent=tr(msg);t.classList.add('show');clearTimeout(t._h);t._h=setTimeout(()=>t.classList.remove('show'),2400);}
-const APP_VER='v2026-07-22d';
+const APP_VER='v2026-07-22e';
 const $=id=>document.getElementById(id);
 
 /* ================= I18N ================= */
