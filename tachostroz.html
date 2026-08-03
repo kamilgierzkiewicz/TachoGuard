@@ -862,6 +862,8 @@ function analyze(events, now, settings={}){
   R.splitP1=splitP1;
   R.workDeadline = R.workRuleDone ? null : now + Math.max(0,(L.WORK6 - w6cw))*MIN;
   R.nightTouched=nightT; R.nightWin=[ns,ns+4];
+  // ile jeszcze PRACY (jazda + inna) wolno przy dotknietej porze nocnej; null = limit nie dotyczy
+  R.nightWorkLeft = nightT ? Math.max(0, L.NIGHT10 - dayWork) : null;
   if(nightT && dayWork>L.NIGHT10)
     add('viol','NIGHT10',`Bieżąca dniówka zahacza o porę nocną (${String(ns).padStart(2,'0')}:00–${String(ns+4).padStart(2,'0')}:00) i przekroczyła 10h pracy (${fmtHM(dayWork)}) — art. 21 ustawy.`, now);
   /* bieżąca (otwarta) dniówka: przekroczenie 9h jazdy księguje wydłużenie od razu */
@@ -932,7 +934,7 @@ const fmtHMs=m=>{m=Math.max(0,Math.round(m));return Math.floor(m/60)+':'+pad(m%6
 const DAYS=['niedziela','poniedziałek','wtorek','środa','czwartek','piątek','sobota'];
 function toLocalInput(ms){const d=new Date(ms);return d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate())+'T'+pad(d.getHours())+':'+pad(d.getMinutes());}
 function toast(msg){const t=document.getElementById('toast');t.textContent=tr(msg);t.classList.add('show');clearTimeout(t._h);t._h=setTimeout(()=>t.classList.remove('show'),2400);}
-const APP_VER='v2026-07-22e';
+const APP_VER='v2026-07-22g';
 const $=id=>document.getElementById(id);
 
 /* ================= I18N ================= */
@@ -1346,6 +1348,14 @@ const TR_PAIRS=[
 ["＋1 godzina","＋1 hour"],
 ["＋2 godziny","＋2 hours"],
 ["Anuluj","Cancel"],
+["<b>limit pracy nocnej 10h wyczerpany</b> (","<b>10h night work cap reached</b> ("],
+["możesz pracować jeszcze <b>","you can still work <b>"],
+["</b> — ogranicza <b>limit pracy nocnej 10h</b> (","</b> — limited by the <b>10h night work cap</b> ("],
+["noc 10h","night 10h"],
+["LIMIT NOCNY 10H — KONIEC PRACY!","10H NIGHT CAP — STOP WORKING!"],
+["Limit nocny 10h za ","10h night cap in "],
+["Praca zahaczyła o porę nocną, więc dniówka nie może przekroczyć <b>10 h</b> (art. 21 ustawy). Limit osiągnięty — <b>zakończ pracę i rozpocznij odpoczynek dobowy</b>. Przerwa tego nie odblokuje.","Work touched the night window, so the shift cannot exceed <b>10 h</b> (art. 21). Limit reached — <b>stop working and start a daily rest</b>. A break will not unlock it."],
+["Zbliżasz się do <b>10 h pracy</b> (jazda + inna praca) przy dotkniętej porze nocnej.<br>Pracę zakończ najpóźniej o <b>","You are approaching <b>10 h of work</b> (driving + other work) with the night window touched.<br>Finish work by <b>"],
 ];
 TR_PAIRS.sort((a,b)=>b[0].length-a[0].length);
 function tr(s){ if(LANG!=='en'||!s) return s; for(const p of TR_PAIRS) s=s.split(p[0]).join(p[1]); return s; }
@@ -1462,9 +1472,12 @@ function renderToday(R,now){
     eb.className=extLeft===2?'g':extLeft===1?'o':'r';
     if(R.extDeclared) eb.classList.add('onx');
     eb.disabled=(extLeft===0&&!R.extDeclared);
-    const winBlocks = (R.windowLeftRed||0) < (Math.max(0,R.dayDriveLimit-R.dayDrive)+60);  // okno nie da 10. godziny
-    eb.textContent=R.extDeclared?(R.extPending?'10h po 45′':'10h ✓'):(winBlocks&&!R.extDeclared?'okno 15h':('+1h ×'+extLeft));
-    eb.classList.toggle('disw', winBlocks&&!R.extDeclared);
+    const needFor10 = Math.max(0,R.dayDriveLimit-R.dayDrive)+60;                 // ile czasu trzeba na 10. godzine jazdy
+    const winBlocks   = (R.windowLeftRed||0) < needFor10;                        // okno 15h nie da rady
+    const nightBlocks = R.nightWorkLeft!=null && R.nightWorkLeft < needFor10;    // limit pracy nocnej 10h nie da rady
+    const blocked = winBlocks||nightBlocks;
+    eb.textContent=R.extDeclared?(R.extPending?'10h po 45′':'10h ✓'):(blocked&&!R.extDeclared?(nightBlocks?'noc 10h':'okno 15h'):('+1h ×'+extLeft));
+    eb.classList.toggle('disw', blocked&&!R.extDeclared);
   }
   const a12b=$('art12Btn');
   if(a12b){
@@ -1505,17 +1518,23 @@ function renderToday(R,now){
     const contLeft=L.CONT_DRIVE-R.contDrive;
     const dayLeft=Math.max(0,R.dayDriveLimit-R.dayDrive);
     const winLeft=Math.max(0,Math.floor(R.windowLeftRed||0));   // okno dobowe 15h
-    // prawdziwy zapas jazdy to najmniejszy z trzech: ciągła, dzienna, OKNO
-    if(dayLeft<=0){
+    const nightLeft = R.nightWorkLeft==null ? Infinity : Math.max(0,Math.floor(R.nightWorkLeft));  // limit pracy nocnej 10h
+    // prawdziwy zapas jazdy to najmniejszy z czterech: ciągła, dzienna, OKNO, NOC
+    if(R.nightWorkLeft!=null && nightLeft<=0){
+      $('contHint').innerHTML='<span style="color:var(--arc-r)">'+tr(`<b>limit pracy nocnej 10h wyczerpany</b> (${fmtHMs(R.dayWork)}) — rozpocznij odpoczynek dobowy`)+'</span>';
+    } else if(dayLeft<=0){
       $('contHint').innerHTML='<span style="color:var(--arc-r)">'+tr(`<b>limit dzienny wyczerpany</b> (${fmtHMs(R.dayDrive)} / ${fmtHMs(R.dayDriveLimit)}) — rozpocznij odpoczynek dobowy`)+'</span>';
     } else if(winLeft<=0){
       $('contHint').innerHTML='<span style="color:var(--arc-r)">'+tr(`<b>okno dobowe 15h zamknięte</b> — musisz rozpocząć odpoczynek 9h`)+'</span>';
+    } else if(nightLeft<=dayLeft && nightLeft<=contLeft && nightLeft<=winLeft){
+      // NOC jest najciaśniejsza — art. 21 dyktuje koniec dniówki
+      $('contHint').innerHTML='<span style="color:var(--arc-o)">'+tr(`możesz pracować jeszcze <b>${fmtHMs(nightLeft)}</b> — ogranicza <b>limit pracy nocnej 10h</b> (${fmtHMs(R.dayWork)} / 10:00)`)+'</span>';
     } else if(winLeft<=dayLeft && winLeft<=contLeft){
       // OKNO jest najciaśniejsze — to ono dyktuje koniec dnia
       $('contHint').innerHTML='<span style="color:var(--arc-o)">'+tr(`możesz jechać jeszcze <b>${fmtHMs(winLeft)}</b> — ogranicza <b>okno dobowe 15h</b>, odpoczynek 9h zacznij do <b>${fmtClock(R.period.deadlineRed)}</b>`)+'</span>';
     } else if(dayLeft<contLeft){
       $('contHint').innerHTML=tr(`możesz jechać jeszcze <b>${fmtHMs(dayLeft)}</b> — ogranicza limit dzienny (${fmtHMs(R.dayDrive)} / ${fmtHMs(R.dayDriveLimit)})`);
-    } else if(dayLeft<=60 && R.extLatent && winLeft>dayLeft+60){
+    } else if(dayLeft<=60 && R.extLatent && winLeft>dayLeft+60 && nightLeft>dayLeft+60){
       // +1h kusimy TYLKO gdy okno faktycznie da wykorzystać tę godzinę
       $('contHint').innerHTML=tr(`możesz jechać jeszcze <b>${fmtHMs(dayLeft)}</b> do limitu 9h — <b>＋1h</b> przy tarczy podniesie do 10h`);
     } else if(R.contDrive>0){
@@ -1992,7 +2011,7 @@ function renderGuide(){ $('guideBody').innerHTML = (LANG==='en'? GUIDE_EN : GUID
 
 /* ================= ALARMY PRZERWY (30/15/5/0 min) ================= */
 const ALARM_AT=[30,15,5,0];
-let alarmFired={}, alarmFiredW={}, doneFired={}, audioCtx=null, wakeLock=null;
+let alarmFired={}, alarmFiredW={}, alarmFiredN={}, doneFired={}, audioCtx=null, wakeLock=null;
 function unlockAudio(){ try{ if(!audioCtx) audioCtx=new (window.AudioContext||window.webkitAudioContext)();
   if(audioCtx.state==='suspended') audioCtx.resume(); }catch(e){} }
 ['touchstart','mousedown','keydown'].forEach(ev=>document.addEventListener(ev,unlockAudio,{once:true,passive:true}));
@@ -2026,21 +2045,25 @@ function showDone(title,html){
   if(navigator.vibrate) navigator.vibrate([120,60,120]);
 }
 function showAlarm(kind,left,deadline){
-  const done=kind==='done', crit=!done&&left<=0, isW=kind==='work';
+  const done=kind==='done', crit=!done&&left<=0, isW=kind==='work', isN=kind==='night';
   $('alarmBox').classList.toggle('crit',crit);
   $('alarmBox').classList.toggle('okA',done);
   $('alarmTitle').textContent = tr(done
     ? 'PRZERWA ZALICZONA ✓'
     : crit
-      ? (isW?'PRZERWA W PRACY — TERAZ!':'PRZERWA — TERAZ!')
-      : (isW?'Przerwa w pracy za '+Math.round(left)+' min':'Przerwa za '+Math.round(left)+' min'));
+      ? (isN?'LIMIT NOCNY 10H — KONIEC PRACY!':(isW?'PRZERWA W PRACY — TERAZ!':'PRZERWA — TERAZ!'))
+      : (isN?'Limit nocny 10h za '+Math.round(left)+' min':(isW?'Przerwa w pracy za '+Math.round(left)+' min':'Przerwa za '+Math.round(left)+' min')));
   $('alarmText').innerHTML = tr(done
     ? 'Wymagane <b>'+left+' min</b> odebrane — licznik jazdy ciągłej i reguła 6h wyzerowane. Możesz ruszać.'
     : crit
-    ? (isW
+    ? (isN
+      ? 'Praca zahaczyła o porę nocną, więc dniówka nie może przekroczyć <b>10 h</b> (art. 21 ustawy). Limit osiągnięty — <b>zakończ pracę i rozpocznij odpoczynek dobowy</b>. Przerwa tego nie odblokuje.'
+      : isW
       ? 'Minęło <b>6 h pracy</b> (jazda + inna praca) bez wymaganej przerwy. Odpocznij <b>≥30 min</b> — pełna przerwa 45 z tachografu też załatwia sprawę.'
       : 'Limit <b>4:30</b> jazdy ciągłej osiągnięty. Zatrzymaj się przy najbliższej okazji i ustaw odpoczynek — <b>45 min</b> (lub 30, jeśli masz zaliczone 15).')
-    : (isW
+    : (isN
+      ? 'Zbliżasz się do <b>10 h pracy</b> (jazda + inna praca) przy dotkniętej porze nocnej.<br>Pracę zakończ najpóźniej o <b>'+fmtClock(deadline)+'</b> — potem odpoczynek dobowy.'
+      : isW
       ? 'Zbliżasz się do <b>6 h pracy</b> łącznie (jazda + inna praca).<br>Przerwę ≥30 min zacznij najpóźniej o <b>'+fmtClock(deadline)+'</b>.'
       : 'Zbliżasz się do limitu 4:30 jazdy ciągłej.<br>Przerwę zacznij najpóźniej o <b>'+fmtClock(deadline)+'</b>.'));
   $('alarmOvl').classList.add('show');
@@ -2081,6 +2104,7 @@ function checkGapAck(){
 function checkAlarms(R){
   if(R.contDrive===0) alarmFired={};
   if(R.contWork===0) alarmFiredW={};
+  if(R.nightWorkLeft==null || R.dayWork===0) alarmFiredN={};   // świeża dniówka albo noc nie dotyczy
   const cur=R.currentSeg;
   if(!cur) return;
   if(cur.type==='rest'){
@@ -2118,7 +2142,17 @@ function checkAlarms(R){
       if(leftW<=th && !alarmFiredW[th]){ alarmFiredW[th]=true; if(en[th]!==false) trigW=true; }
     }
   }
-  if(trigD) showAlarm('drive',leftD,R.breakDeadline);
+  // limit pracy nocnej 10h (art. 21) — rośnie tak jak czas pracy
+  let trigN=false, leftN=0;
+  if(R.nightWorkLeft!=null && (cur.type==='drive'||cur.type==='work'||cur.type==='out')){
+    leftN=R.nightWorkLeft;
+    for(const th of ALARM_AT){
+      if(leftN<=th && !alarmFiredN[th]){ alarmFiredN[th]=true; if(en[th]!==false) trigN=true; }
+    }
+  }
+  // priorytet: noc kończy dniówkę (przerwa jej nie odblokuje), więc wyprzedza pozostałe
+  if(trigN) showAlarm('night',leftN,Date.now()+leftN*MIN);
+  else if(trigD) showAlarm('drive',leftD,R.breakDeadline);
   else if(trigW && !R.workRuleDone) showAlarm('work',leftW,R.workDeadline);
 }
 /* Tryb jazdy: nie wygaszaj ekranu, żeby alarmy mogły zadziałać (iOS usypia karty w tle) */
