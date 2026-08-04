@@ -117,15 +117,18 @@ main{padding:16px 16px 8px;max-width:560px;margin:0 auto}
 #extBtn.disw{opacity:.42;filter:grayscale(.6)}
 header,main,nav{transition:transform 1.6s ease, filter .6s ease}
 body.dimmed header,body.dimmed main,body.dimmed nav{filter:brightness(.3)}
-#gpsBadge{margin:8px 0 2px;padding:9px 12px;border-radius:14px;font-size:.84rem;font-weight:600;
+#gpsBadge{margin:8px 0 2px;padding:10px 13px;border-radius:14px;font-size:.88rem;font-weight:700;
   display:flex;align-items:center;justify-content:space-between;gap:8px;
-  background:rgba(87,184,216,.13);border:1px solid rgba(87,184,216,.4);color:#9BD9EC}
-#gpsBadge.off{background:rgba(255,176,32,.12);border-color:rgba(255,176,32,.42);color:#FFD08A}
+  background:color-mix(in srgb,var(--blue) 15%,var(--panel));
+  border:1.5px solid color-mix(in srgb,var(--blue) 55%,transparent);
+  color:var(--blue)}
+#gpsBadge.off{background:color-mix(in srgb,var(--amber) 16%,var(--panel));
+  border-color:color-mix(in srgb,var(--amber) 60%,transparent);color:var(--amber)}
 #gpsBadge .sp{font-variant-numeric:tabular-nums;font-weight:800}
 #gpsOvl{position:fixed;inset:0;background:rgba(4,6,10,.84);z-index:60;display:none;align-items:center;justify-content:center;padding:24px}
 #gpsOvl.show{display:flex}
 #gpsBox{background:var(--glass);-webkit-backdrop-filter:blur(26px) saturate(160%);backdrop-filter:blur(26px) saturate(160%);
-  border:2px solid #57B8D8;border-radius:26px;padding:24px 20px calc(20px + env(safe-area-inset-bottom)/2);max-width:420px;width:100%}
+  border:2px solid var(--blue);border-radius:26px;padding:24px 20px calc(20px + env(safe-area-inset-bottom)/2);max-width:420px;width:100%}
 #gpsBox h2{text-align:center;margin-bottom:8px;font-size:1.1rem}
 #gpsBox p{text-align:center;font-size:.9rem;opacity:.85;margin-bottom:16px;line-height:1.45}
 .art12btn{width:100%;margin:8px 0 4px;padding:12px;border-radius:16px;font-weight:700;font-size:.9rem;
@@ -136,13 +139,13 @@ body.dimmed header,body.dimmed main,body.dimmed nav{filter:brightness(.3)}
 #a12Ovl{position:fixed;inset:0;background:rgba(4,6,10,.84);z-index:60;display:none;align-items:center;justify-content:center;padding:24px}
 #a12Ovl.show{display:flex}
 #a12Box{background:var(--glass);-webkit-backdrop-filter:blur(26px) saturate(160%);backdrop-filter:blur(26px) saturate(160%);
-  border:2px solid #B08CFF;border-radius:26px;padding:24px 20px calc(20px + env(safe-area-inset-bottom)/2);max-width:440px;width:100%}
+  border:2px solid var(--c-out);border-radius:26px;padding:24px 20px calc(20px + env(safe-area-inset-bottom)/2);max-width:440px;width:100%}
 #a12Box h2{text-align:center;margin-bottom:6px;font-size:1.15rem}
 #a12Box .sub{text-align:center;font-size:.85rem;opacity:.8;margin-bottom:16px;line-height:1.4}
 .a12opt{width:100%;text-align:left;padding:14px;border-radius:16px;margin-bottom:10px;border:1px solid var(--glass-brd);
   background:var(--glassL);color:var(--txt);transition:transform .06s ease}
 .a12opt:active{transform:scale(.98)}
-.a12opt b{font-size:1.02rem;color:#C4A6FF}
+.a12opt b{font-size:1.02rem;color:var(--c-out)}
 .a12opt small{display:block;margin-top:3px;opacity:.75;font-size:.82rem;line-height:1.35}
 .a12warn{font-size:.8rem;opacity:.78;margin:4px 0 14px;line-height:1.4;padding:10px;border-radius:12px;background:rgba(176,140,255,.1)}
 .startday{width:100%;margin-top:10px;padding:15px;border-radius:18px;font-weight:800;letter-spacing:.05em;color:#20340A;
@@ -967,7 +970,7 @@ const fmtHMs=m=>{m=Math.max(0,Math.round(m));return Math.floor(m/60)+':'+pad(m%6
 const DAYS=['niedziela','poniedziałek','wtorek','środa','czwartek','piątek','sobota'];
 function toLocalInput(ms){const d=new Date(ms);return d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate())+'T'+pad(d.getHours())+':'+pad(d.getMinutes());}
 function toast(msg){const t=document.getElementById('toast');t.textContent=tr(msg);t.classList.add('show');clearTimeout(t._h);t._h=setTimeout(()=>t.classList.remove('show'),2400);}
-const APP_VER='v2026-07-22k';
+const APP_VER='v2026-07-22l';
 const $=id=>document.getElementById(id);
 
 /* ================= I18N ================= */
@@ -1611,8 +1614,8 @@ function renderToday(R,now){
   if(R.art12){
     const overGuard = R.dayDrive>L.DAILY_DRIVE_EXT ? '' : '';
     const need2 = R.art12Add>=120;
-    A+=assistCard('🏠 Powrót na bazę — art. 12 aktywny','#B08CFF',
-      `<div class="row"><span class="k">Wydłużenie jazdy</span><span class="v" style="color:#C4A6FF;font-weight:700">+${R.art12Add===120?'2h':'1h'}</span></div>`
+    A+=assistCard('🏠 Powrót na bazę — art. 12 aktywny','var(--c-out)',
+      `<div class="row"><span class="k">Wydłużenie jazdy</span><span class="v" style="color:var(--c-out);font-weight:700">+${R.art12Add===120?'2h':'1h'}</span></div>`
       +`<div class="row"><span class="k">Limit jazdy dziś</span><span class="v">${fmtHMs(R.dayDriveLimit)} (${fmtHMs(R.dayDrive)} wykorzystane)</span></div>`
       +(need2?`<div class="row"><span class="k">Przerwa 30 min przed dodatkową jazdą</span><span class="v ${R.art12BreakOK?'ok':'bad'}">${R.art12BreakOK?'zaliczona ✓':'WYMAGANA!'}</span></div>`:'')
       +`<div class="row"><span class="k">Cel</span><span class="v warn">baza / dom — odpoczynek tygodniowy</span></div>`
