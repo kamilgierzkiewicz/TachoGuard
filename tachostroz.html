@@ -115,6 +115,19 @@ main{padding:16px 16px 8px;max-width:560px;margin:0 auto}
   box-shadow:inset 0 1px 0 rgba(255,255,255,.18),0 6px 16px rgba(0,0,0,.35);transition:transform .08s ease}
 .endday:active{transform:translateY(1px)}
 #extBtn.disw{opacity:.42;filter:grayscale(.6)}
+header,main,nav{transition:transform 1.6s ease, filter .6s ease}
+body.dimmed header,body.dimmed main,body.dimmed nav{filter:brightness(.3)}
+#gpsBadge{margin:8px 0 2px;padding:9px 12px;border-radius:14px;font-size:.84rem;font-weight:600;
+  display:flex;align-items:center;justify-content:space-between;gap:8px;
+  background:rgba(87,184,216,.13);border:1px solid rgba(87,184,216,.4);color:#9BD9EC}
+#gpsBadge.off{background:rgba(255,176,32,.12);border-color:rgba(255,176,32,.42);color:#FFD08A}
+#gpsBadge .sp{font-variant-numeric:tabular-nums;font-weight:800}
+#gpsOvl{position:fixed;inset:0;background:rgba(4,6,10,.84);z-index:60;display:none;align-items:center;justify-content:center;padding:24px}
+#gpsOvl.show{display:flex}
+#gpsBox{background:var(--glass);-webkit-backdrop-filter:blur(26px) saturate(160%);backdrop-filter:blur(26px) saturate(160%);
+  border:2px solid #57B8D8;border-radius:26px;padding:24px 20px calc(20px + env(safe-area-inset-bottom)/2);max-width:420px;width:100%}
+#gpsBox h2{text-align:center;margin-bottom:8px;font-size:1.1rem}
+#gpsBox p{text-align:center;font-size:.9rem;opacity:.85;margin-bottom:16px;line-height:1.45}
 .art12btn{width:100%;margin:8px 0 4px;padding:12px;border-radius:16px;font-weight:700;font-size:.9rem;
   color:#EEE6FF;background:linear-gradient(180deg,#5B3FA0,#4A3184);border:1px solid rgba(176,140,255,.5);
   box-shadow:inset 0 1px 0 rgba(255,255,255,.25),0 4px 12px rgba(0,0,0,.28);transition:transform .08s ease}
@@ -371,6 +384,7 @@ window.addEventListener('unhandledrejection',function(e){try{
   </div>
   <div id="contHint"></div>
 
+  <div id="gpsBadge" style="display:none"></div>
   <button class="art12btn" id="art12Btn">🏠 Powrót na bazę (art. 12) — wydłuż jazdę</button>
 
   <div id="nowBanner">
@@ -464,6 +478,19 @@ window.addEventListener('unhandledrejection',function(e){try{
     <div class="switch"><div class="txt">Dźwięk alarmów <small>iPhone: pierwszy dotyk odblokowuje audio; sprawdź też boczny przełącznik trybu cichego i głośność</small></div><div class="sw" data-alarm-snd></div></div>
   </div>
   <div class="card">
+    <h3>Auto-jazda z GPS</h3>
+    <p class="hint-inline" style="margin:0 0 6px">Wykrywa ruch pojazdu i <b>sam włącza Jazdę</b>. Nigdy sam jej nie wyłącza — po dłuższym postoju tylko zapyta. Działa <b>tylko przy włączonym ekranie</b> (iOS wyłącza GPS po zablokowaniu telefonu). To pomoc, nie zamiennik tachografu.</p>
+    <div class="switch"><div class="txt">Włącz auto-jazdę <small>wymaga zgody na lokalizację</small></div><div class="sw" data-gps></div></div>
+    <div class="switch"><div class="txt">Pytaj po postoju <small>po 5 min bez ruchu: „przełączyć na Inną pracę?"</small></div><div class="sw" data-gps-ask></div></div>
+    <div class="switch"><div class="txt">Alarm gdy GPS milknie <small>głośny sygnał po 10 min bez sygnału — ważne przy telefonie na uchwycie</small></div><div class="sw" data-gps-wd></div></div>
+  </div>
+  <div class="card">
+    <h3>Ochrona ekranu</h3>
+    <p class="hint-inline" style="margin:0 0 6px">Dla telefonu pracującego cały dzień z włączonym ekranem: układ przesuwa się co kilka minut o kilka pikseli (zapobiega wypaleniu OLED), a podczas odpoczynku ekran przygasa. Dotknięcie przywraca pełną jasność na minutę.</p>
+    <div class="switch"><div class="txt">Przesuwaj układ <small>ochrona przed wypaleniem</small></div><div class="sw" data-burn></div></div>
+    <div class="switch"><div class="txt">Przygaszaj podczas odpoczynku</div><div class="sw" data-dim></div></div>
+  </div>
+  <div class="card">
     <h3>Wygląd</h3>
     <div class="lbl" style="margin:2px 0 6px">Język / Language</div>
     <div class="seg" id="langSeg" style="grid-template-columns:repeat(2,1fr)">
@@ -555,6 +582,12 @@ window.addEventListener('unhandledrejection',function(e){try{
   <p id="gapTxt"></p>
   <button class="btn" id="gapYes">Tak — to był odpoczynek</button>
   <button class="btn ghost" id="gapNo" style="margin-top:8px">Nie — uzupełnię wpisy</button>
+</div></div>
+<div id="gpsOvl"><div id="gpsBox">
+  <h2>🛑 Pojazd stoi</h2>
+  <p id="gpsAskTxt"></p>
+  <button class="btn" id="gpsToWork">Tak — przełącz na Inną pracę</button>
+  <button class="btn ghost" id="gpsStay" style="margin-top:8px">Nie — zostaw Jazdę</button>
 </div></div>
 <div id="a12Ovl"><div id="a12Box">
   <h2>🏠 Powrót na bazę — art. 12</h2>
@@ -934,7 +967,7 @@ const fmtHMs=m=>{m=Math.max(0,Math.round(m));return Math.floor(m/60)+':'+pad(m%6
 const DAYS=['niedziela','poniedziałek','wtorek','środa','czwartek','piątek','sobota'];
 function toLocalInput(ms){const d=new Date(ms);return d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate())+'T'+pad(d.getHours())+':'+pad(d.getMinutes());}
 function toast(msg){const t=document.getElementById('toast');t.textContent=tr(msg);t.classList.add('show');clearTimeout(t._h);t._h=setTimeout(()=>t.classList.remove('show'),2400);}
-const APP_VER='v2026-07-22h';
+const APP_VER='v2026-07-22k';
 const $=id=>document.getElementById(id);
 
 /* ================= I18N ================= */
@@ -1105,8 +1138,7 @@ const TR_PAIRS=[
 ["Wyczyszczono","Cleared"],
 ["Sprawdź daty — koniec musi być po początku","Check dates — the end must be after the start"],
 ["Inny wpis już trwa — najpierw go zakończ","Another entry is ongoing — finish it first"],
-["Odczekaj minutę — wpisy co 1 min","Wait a minute — entries are 1-min grained"],
-["Wpis krótszy niż minuta — usuń go w Dzienniku","Entry shorter than a minute — delete it in the Log"],
+["■ Anulowano — wpis krótszy niż minuta","■ Cancelled — entry shorter than a minute"],
 ["Nic nie trwa","Nothing is running"],
 ["Zakończono: ","Finished: "],
 [" już trwa"," is already running"],
@@ -1361,6 +1393,17 @@ const TR_PAIRS=[
 ["Z samego limitu jazdy zostałoby","From the driving limit alone"],
 ["limit pracy nocnej 10h","10h night work cap"],
 ["okno dobowe 15h","15h daily window"],
+["Auto-jazda z GPS","GPS auto-driving"],
+["📡 GPS aktywny — auto-jazda","📡 GPS active — auto-driving"],
+["📡 GPS wstrzymany — wróć do aplikacji","📡 GPS paused — return to the app"],
+["🛑 Pojazd stoi","🛑 Vehicle stopped"],
+["Tak — przełącz na Inną pracę","Yes — switch to Other work"],
+["Nie — zostaw Jazdę","No — keep Driving"],
+["GPS MILCZY","GPS SILENT"],
+["Ochrona ekranu","Screen care"],
+["Przesuwaj układ","Shift the layout"],
+["Przygaszaj podczas odpoczynku","Dim during rest"],
+["Alarm gdy GPS milknie","Alarm when GPS goes silent"],
 ];
 TR_PAIRS.sort((a,b)=>b[0].length-a[0].length);
 function tr(s){ if(LANG!=='en'||!s) return s; for(const p of TR_PAIRS) s=s.split(p[0]).join(p[1]); return s; }
@@ -1484,6 +1527,7 @@ function renderToday(R,now){
     eb.textContent=R.extDeclared?(R.extPending?'10h po 45′':'10h ✓'):(blocked&&!R.extDeclared?(nightBlocks?'noc 10h':'okno 15h'):('+1h ×'+extLeft));
     eb.classList.toggle('disw', blocked&&!R.extDeclared);
   }
+  renderGpsBadge();
   const a12b=$('art12Btn');
   if(a12b){
     a12b.classList.toggle('on', !!R.art12);
@@ -1779,7 +1823,7 @@ function startAct(type){
   const n=nowMin();
   const open=state.events.find(e=>e.end==null);
   if(open){ if(open.type===type){toast(TYPES[type].name+' już trwa');return;}
-    if(n<=open.start){toast('Odczekaj minutę — wpisy co 1 min');return;}
+    if(n<=open.start){ open.type=type; save();renderAll();toast('▶ '+TYPES[type].name+' od '+fmtClock(open.start));return; }
     open.end=n; }
   state.events.push({id:uid(),type,start:n,end:null,note:''});
   save();renderAll();toast('▶ '+TYPES[type].name+' od '+fmtClock(n));
@@ -1787,7 +1831,8 @@ function startAct(type){
 function stopAct(){
   const open=state.events.find(e=>e.end==null);
   if(!open){toast('Nic nie trwa');return;}
-  const n=nowMin(); if(n<=open.start){toast('Wpis krótszy niż minuta — usuń go w Dzienniku');return;}
+  const n=nowMin();
+  if(n<=open.start){ state.events=state.events.filter(e=>e!==open); save();renderAll();toast('■ Anulowano — wpis krótszy niż minuta'); return; }
   open.end=n;save();renderAll();toast('■ Zakończono: '+TYPES[open.type].name);
 }
 
@@ -2173,7 +2218,7 @@ function checkAlarms(R){
 }
 /* Tryb jazdy: nie wygaszaj ekranu, żeby alarmy mogły zadziałać (iOS usypia karty w tle) */
 async function updateWakeLock(R){
-  const driving=R&&R.currentSeg&&(R.currentSeg.type==='drive'||R.currentSeg.type==='work'||R.currentSeg.type==='out');
+  const driving=(R&&R.currentSeg&&(R.currentSeg.type==='drive'||R.currentSeg.type==='work'||R.currentSeg.type==='out')) || gpsOn();
   try{
     if(driving && !wakeLock && 'wakeLock' in navigator){
       wakeLock=await navigator.wakeLock.request('screen');
@@ -2182,6 +2227,136 @@ async function updateWakeLock(R){
   }catch(e){ wakeLock=null; }
 }
 document.addEventListener('visibilitychange',()=>{ if(document.visibilityState==='visible'&&lastR) updateWakeLock(lastR); });
+
+/* ================= GPS: auto-jazda ================= */
+const GPS_MOVE_KMH = 5;      // próg ruchu — niżej niż 15, bo tachograf liczy też manewry
+const GPS_STOP_MIN = 5;      // po ilu minutach bez ruchu pytamy o Inną pracę
+let gpsWatch=null, gpsSamples=[], gpsPrev=null, gpsAskedAt=0, gpsLastKmh=null;
+
+function haversineM(a1,o1,a2,o2){
+  const R=6371000, rad=Math.PI/180;
+  const dLa=(a2-a1)*rad, dLo=(o2-o1)*rad;
+  const x=Math.sin(dLa/2)**2 + Math.cos(a1*rad)*Math.cos(a2*rad)*Math.sin(dLo/2)**2;
+  return 2*R*Math.asin(Math.min(1,Math.sqrt(x)));
+}
+function gpsOn(){ return state.settings.gpsAuto===true; }
+
+function gpsStart(){
+  if(!gpsOn()) return;
+  if(!navigator.geolocation){ toast('Ten telefon nie udostępnia GPS'); state.settings.gpsAuto=false; save(); renderGpsBadge(); return; }
+  if(gpsWatch!=null) return;
+  try{
+    gpsWatch=navigator.geolocation.watchPosition(onGpsPos, onGpsErr,
+      {enableHighAccuracy:true, maximumAge:4000, timeout:25000});
+  }catch(e){ onGpsErr({code:2}); }
+  renderGpsBadge();
+}
+function gpsStopWatch(){
+  if(gpsWatch!=null){ try{navigator.geolocation.clearWatch(gpsWatch);}catch(e){} gpsWatch=null; }
+  gpsSamples=[]; gpsPrev=null; gpsLastKmh=null; gpsLastFix=0; renderGpsBadge();
+}
+function onGpsErr(e){
+  state.settings.gpsAuto=false; save(); gpsStopWatch(); renderBackupStats();
+  toast((e&&e.code===1)?'Brak zgody na lokalizację — auto-jazda wyłączona':'GPS niedostępny — auto-jazda wyłączona');
+}
+function onGpsPos(pos){
+  const t=Date.now(), c=pos.coords;
+  let kmh = (c.speed!=null && isFinite(c.speed) && c.speed>=0) ? c.speed*3.6 : null;
+  if(kmh==null && gpsPrev){                                  // zapas: prędkość z dystansu
+    const dt=(t-gpsPrev.t)/1000;
+    if(dt>0.5) kmh = haversineM(gpsPrev.la,gpsPrev.lo,c.latitude,c.longitude)/dt*3.6;
+  }
+  gpsPrev={la:c.latitude, lo:c.longitude, t};
+  gpsLastFix=t; gpsFailAt=0;
+  if(kmh==null) return;
+  gpsLastKmh=kmh;
+  gpsSamples.push({t, mov: kmh>=GPS_MOVE_KMH});
+  const cut=t-(GPS_STOP_MIN+2)*60000;
+  gpsSamples=gpsSamples.filter(s=>s.t>=cut);
+  gpsEvaluate();
+  renderGpsBadge();
+}
+/* udział próbek "w ruchu" w oknie [from,to]; null gdy brak danych */
+function gpsMovFrac(from,to){
+  const w=gpsSamples.filter(s=>s.t>=from && s.t<=to);
+  if(!w.length) return null;
+  return w.filter(s=>s.mov).length / w.length;
+}
+function gpsEvaluate(){
+  const now=Date.now();
+  const open=state.events.find(e=>e.end==null);
+  const last=gpsMovFrac(now-60000, now);                     // reguła minuty: przeważająca aktywność
+  if(last==null) return;
+  if(last>0.5){                                              // minuta jazdy
+    gpsAskedAt=0;
+    if(!open || open.type!=='drive') startAct('drive');
+    return;
+  }
+  if(open && open.type==='drive' && state.settings.gpsAsk!==false){
+    const from=now-GPS_STOP_MIN*60000;
+    const covered = gpsSamples.length && gpsSamples[0].t<=from+15000;
+    const frac=gpsMovFrac(from, now);
+    if(covered && frac===0 && (now-gpsAskedAt)>10*60000){
+      gpsAskedAt=now;
+      $('gpsAskTxt').innerHTML=tr(`Od <b>${GPS_STOP_MIN} min</b> nie wykrywam ruchu, a trwa <b>Jazda</b>. Przełączyć na <b>Inną pracę</b>? Licznik jazdy ciągłej zatrzyma się, a czas pracy dalej rośnie.`);
+      $('gpsOvl').classList.add('show');
+      chime('warn'); if(navigator.vibrate) navigator.vibrate([180,90,180]);
+    }
+  }
+}
+function renderGpsBadge(){
+  const b=$('gpsBadge'); if(!b) return;
+  if(!gpsOn()){ b.style.display='none'; return; }
+  b.style.display='';
+  const live = gpsWatch!=null && document.visibilityState==='visible';
+  b.classList.toggle('off', !live);
+  const sp = gpsLastKmh==null ? '—' : Math.round(gpsLastKmh)+' km/h';
+  b.innerHTML = live
+    ? '<span>'+tr('📡 GPS aktywny — auto-jazda')+'</span><span class="sp">'+sp+'</span>'
+    : '<span>'+tr('📡 GPS wstrzymany — wróć do aplikacji')+'</span><span class="sp">—</span>';
+}
+document.addEventListener('visibilitychange',()=>{
+  if(document.visibilityState==='visible'){ gpsStart(); }
+  else { gpsSamples=[]; gpsPrev=null; renderGpsBadge(); }   // dane z tła są niewiarygodne — czyścimy
+});
+
+/* ================= WATCHDOG GPS + OCHRONA EKRANU ================= */
+let gpsLastFix=0, gpsFailAt=0;
+function gpsWatchdog(){
+  if(!gpsOn() || state.settings.gpsWd===false) return;
+  if(document.visibilityState!=='visible') return;      // w tle brak sygnału jest normalny
+  if(!gpsLastFix) return;                               // jeszcze nie było pierwszego odczytu
+  const gap=(Date.now()-gpsLastFix)/60000;
+  if(gap>=10 && (Date.now()-gpsFailAt)>15*60000){
+    gpsFailAt=Date.now();
+    $('alarmBox').classList.add('crit'); $('alarmBox').classList.remove('okA');
+    $('alarmTitle').textContent=tr('GPS MILCZY');
+    $('alarmText').innerHTML=tr('Brak sygnału GPS od <b>'+Math.round(gap)+' min</b>, a auto-jazda jest włączona. Licznik mógł nie zarejestrować jazdy — <b>sprawdź wpisy w Dzienniku i w razie potrzeby przełącz ręcznie</b>.');
+    $('alarmOvl').classList.add('show');
+    chime('crit'); if(navigator.vibrate) navigator.vibrate([300,120,300,120,300]);
+  }
+}
+const BURN_STEPS=[[0,0],[2,1],[3,-1],[1,2],[-1,1],[-3,0],[-2,-2],[0,-1]];
+let burnIdx=0, dimUntil=0;
+function burnShift(){
+  const on = state.settings.burnCare!==false;
+  const p = on ? BURN_STEPS[(burnIdx++)%BURN_STEPS.length] : [0,0];
+  ['header','main','nav'].forEach(sel=>{
+    const e=document.querySelector(sel);
+    if(e) e.style.transform='translate('+p[0]+'px,'+p[1]+'px)';
+  });
+}
+function updateDim(R){
+  const want = state.settings.dimRest!==false
+    && R && R.currentSeg && R.currentSeg.type==='rest'
+    && Date.now()>dimUntil;
+  document.body.classList.toggle('dimmed', !!want);
+}
+document.addEventListener('pointerdown',()=>{
+  dimUntil=Date.now()+60000;
+  document.body.classList.remove('dimmed');
+},{passive:true});
+setInterval(burnShift, 3*60000);
 
 /* ================= ASYSTENT (baza offline + opcjonalne API) ================= */
 /* ===KB=== */
@@ -2365,6 +2540,11 @@ function renderBackupStats(){
   $('swIntl').classList.toggle('on',!!state.settings.international);
   const en=state.settings.alarms||{};
   document.querySelectorAll('.sw[data-alarm]').forEach(s=>s.classList.toggle('on',en[s.dataset.alarm]!==false));
+  document.querySelectorAll('.sw[data-gps]').forEach(s=>s.classList.toggle('on',state.settings.gpsAuto===true));
+  document.querySelectorAll('.sw[data-gps-ask]').forEach(s=>s.classList.toggle('on',state.settings.gpsAsk!==false));
+  document.querySelectorAll('.sw[data-gps-wd]').forEach(s=>s.classList.toggle('on',state.settings.gpsWd!==false));
+  document.querySelectorAll('.sw[data-burn]').forEach(s=>s.classList.toggle('on',state.settings.burnCare!==false));
+  document.querySelectorAll('.sw[data-dim]').forEach(s=>s.classList.toggle('on',state.settings.dimRest!==false));
   document.querySelectorAll('.sw[data-alarm-done]').forEach(s=>s.classList.toggle('on',state.settings.alarmDone!==false));
   document.querySelectorAll('.sw[data-alarm-snd]').forEach(s=>s.classList.toggle('on',state.settings.alarmSnd!==false));
   const thm=(state.settings&&state.settings.theme)||'auto';
@@ -2389,6 +2569,8 @@ function tick(){
   const now=Date.now();
   lastR=analyze(state.events,now,state.settings);
   checkAlarms(lastR);
+  gpsWatchdog();
+  updateDim(lastR);
   updateWakeLock(lastR);
   if(document.querySelector('#tab-today.active')) renderToday(lastR,now);
   const viol=lastR.violations.filter(v=>v.sev==='viol').length;
@@ -2396,6 +2578,8 @@ function tick(){
 }
 
 function bindAll(){
+$('gpsToWork').onclick=()=>{ $('gpsOvl').classList.remove('show'); startAct('work'); };
+$('gpsStay').onclick=()=>{ $('gpsOvl').classList.remove('show'); };
 document.querySelectorAll('nav button').forEach(b=>b.onclick=()=>{
   document.querySelectorAll('nav button').forEach(x=>x.classList.remove('active'));
   document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));
@@ -2418,6 +2602,34 @@ $('expBtn').onclick=doExport;
 $('impBtn').onclick=()=>$('impFile').click();
 $('impFile').onchange=e=>{if(e.target.files[0])doImport(e.target.files[0]);e.target.value='';};
 $('swIntl').onclick=()=>{state.settings.international=!state.settings.international;save();renderAll();};
+document.querySelectorAll('.sw[data-gps]').forEach(s=>s.onclick=()=>{
+  const on = state.settings.gpsAuto!==true;
+  state.settings.gpsAuto=on; save(); renderBackupStats();
+  if(on){ gpsStart(); toast('Auto-jazda z GPS włączona — trzymaj ekran włączony'); }
+  else { gpsStopWatch(); toast('Auto-jazda z GPS wyłączona'); }
+  renderGpsBadge();
+});
+document.querySelectorAll('.sw[data-gps-wd]').forEach(s=>s.onclick=()=>{
+  state.settings.gpsWd = state.settings.gpsWd===false;
+  save(); renderBackupStats();
+  toast('Alarm awarii GPS '+(state.settings.gpsWd!==false?'włączony':'wyłączony'));
+});
+document.querySelectorAll('.sw[data-burn]').forEach(s=>s.onclick=()=>{
+  state.settings.burnCare = state.settings.burnCare===false;
+  save(); renderBackupStats(); burnShift();
+  toast('Przesuwanie układu '+(state.settings.burnCare!==false?'włączone':'wyłączone'));
+});
+document.querySelectorAll('.sw[data-dim]').forEach(s=>s.onclick=()=>{
+  state.settings.dimRest = state.settings.dimRest===false;
+  save(); renderBackupStats();
+  if(state.settings.dimRest===false) document.body.classList.remove('dimmed');
+  toast('Przygaszanie podczas odpoczynku '+(state.settings.dimRest!==false?'włączone':'wyłączone'));
+});
+document.querySelectorAll('.sw[data-gps-ask]').forEach(s=>s.onclick=()=>{
+  state.settings.gpsAsk = state.settings.gpsAsk===false;
+  save(); renderBackupStats();
+  toast('Pytanie po postoju '+(state.settings.gpsAsk!==false?'włączone':'wyłączone'));
+});
 document.querySelectorAll('.sw[data-alarm]').forEach(s=>s.onclick=()=>{
   const a=state.settings.alarms=state.settings.alarms||{};
   const k=s.dataset.alarm;
@@ -2451,6 +2663,7 @@ document.querySelectorAll('.sw[data-alarm-snd]').forEach(s=>s.onclick=()=>{
   if(state.settings.alarmSnd!==false) chime('done');
   toast('Dźwięk '+(state.settings.alarmSnd!==false?'włączony':'wyłączony'));
 });
+if(state.settings.gpsAuto===true) setTimeout(gpsStart, 800);
 $('endDayBtn').onclick=()=>startAct('rest');
 $('startDayBtn').onclick=()=>startAct('work');
 $('art12Btn').onclick=()=>{
@@ -2492,7 +2705,7 @@ document.querySelectorAll('.act[data-act],#mSeg button').forEach(b=>{const t=b.d
 }
 
 let ORIG_HTML=null;
-const I18N_SCOPES=['nav','#tab-settings','#tab-backup','#modal','#tab-ask','.acts','#stopBtn','#endDayBtn','#startDayBtn','.dial-sub','.legend','#tab-log .hint-inline','#addBtn','#tab-today .card h3','#alarmOk','#gapBox h2','#gapYes','#gapNo','#a12Box','#art12Btn'];
+const I18N_SCOPES=['nav','#tab-settings','#tab-backup','#modal','#tab-ask','.acts','#stopBtn','#endDayBtn','#startDayBtn','.dial-sub','.legend','#tab-log .hint-inline','#addBtn','#tab-today .card h3','#alarmOk','#gapBox h2','#gapYes','#gapNo','#a12Box','#art12Btn','#gpsBox'];
 function applyLang(){
   LANG=(state.settings&&state.settings.lang)||'pl';
   document.documentElement.lang=LANG;
