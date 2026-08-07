@@ -93,7 +93,9 @@ main{padding:16px 16px 8px;max-width:560px;margin:0 auto}
 /* ---------- Tarcza (signature) ---------- */
 .dial-wrap{position:relative;width:236px;height:236px;margin:6px auto 2px}
 .dial-wrap svg{width:100%;height:100%;display:block}
-.dial-center{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px}
+.dial-center{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;
+  cursor:pointer;-webkit-user-select:none;user-select:none;background:none;border:0;padding:0;transition:transform .12s ease}
+.dial-center:active{transform:scale(.97)}
 #contTime{font-family:var(--sans);font-variant-numeric:tabular-nums;font-size:3.1rem;font-weight:600;letter-spacing:-.045em;
   background:linear-gradient(180deg,var(--num1),var(--num2));-webkit-background-clip:text;background-clip:text;color:transparent;
   filter:drop-shadow(0 1px 2px rgba(0,0,0,.3))}
@@ -380,9 +382,9 @@ window.addEventListener('unhandledrejection',function(e){try{
   <div class="dial-wrap">
     <button id="extBtn" class="g" aria-label="Wydłuż do 10h">+1h</button>
     <svg id="dial" viewBox="0 0 200 200"></svg>
-    <div class="dial-center">
+    <div class="dial-center" id="dialCenter" role="button" tabindex="0" aria-label="Przełącz widok zegara">
       <div id="contTime" class="mono">0:00</div>
-      <div class="dial-sub">jazda ciągła<br><span class="ds2">limit 4:30</span></div>
+      <div class="dial-sub" id="dialSub">jazda ciągła<br><span class="ds2">limit 4:30</span></div>
     </div>
   </div>
   <div id="contHint"></div>
@@ -970,7 +972,7 @@ const fmtHMs=m=>{m=Math.max(0,Math.round(m));return Math.floor(m/60)+':'+pad(m%6
 const DAYS=['niedziela','poniedziałek','wtorek','środa','czwartek','piątek','sobota'];
 function toLocalInput(ms){const d=new Date(ms);return d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate())+'T'+pad(d.getHours())+':'+pad(d.getMinutes());}
 function toast(msg){const t=document.getElementById('toast');t.textContent=tr(msg);t.classList.add('show');clearTimeout(t._h);t._h=setTimeout(()=>t.classList.remove('show'),2400);}
-const APP_VER='v2026-07-22l';
+const APP_VER='v2026-07-22m';
 const $=id=>document.getElementById(id);
 
 /* ================= I18N ================= */
@@ -1407,6 +1409,13 @@ const TR_PAIRS=[
 ["Przesuwaj układ","Shift the layout"],
 ["Przygaszaj podczas odpoczynku","Dim during rest"],
 ["Alarm gdy GPS milknie","Alarm when GPS goes silent"],
+["pozostało","remaining"],
+["przerwa 4:30","break at 4:30"],
+["limit dzienny","daily limit"],
+["okno 15h","15h window"],
+["praca nocna 10h","10h night work"],
+["jazda ciągła","continuous driving"],
+["limit 4:30","limit 4:30"],
 ];
 TR_PAIRS.sort((a,b)=>b[0].length-a[0].length);
 function tr(s){ if(LANG!=='en'||!s) return s; for(const p of TR_PAIRS) s=s.split(p[0]).join(p[1]); return s; }
@@ -1503,12 +1512,30 @@ function setDial(mins){
   const a=(-90+frac*360)*Math.PI/180;
   tip.setAttribute('transform','translate('+(100+DIAL_R*Math.cos(a)).toFixed(2)+' '+(100+DIAL_R*Math.sin(a)).toFixed(2)+')');
   tip.style.opacity=mins>0?1:0;
-  $('contTime').textContent=fmtHMs(mins);
-  $('contTime').classList.toggle('bad',over);
+  // tryb 0 = czas bieżącej jazdy ciągłej, tryb 1 = ile realnie zostało
+  const R=lastR;
+  if(dialMode===1 && R){
+    const contLeft = Math.max(0, L.CONT_DRIVE - R.contDrive);
+    const dayLeft  = Math.max(0, R.dayDriveLimit - R.dayDrive);
+    const winLeft  = Math.max(0, Math.floor(R.windowLeftRed||0));
+    const nightLeft= R.nightWorkLeft==null ? Infinity : Math.max(0, R.nightWorkLeft);
+    const eff = Math.max(0, Math.min(contLeft, dayLeft, winLeft, nightLeft));
+    let src = 'przerwa 4:30';
+    if(eff===dayLeft && dayLeft<contLeft) src='limit dzienny';
+    if(eff===winLeft && winLeft<contLeft && winLeft<=dayLeft) src='okno 15h';
+    if(nightLeft!==Infinity && eff===nightLeft && nightLeft<contLeft && nightLeft<=dayLeft && nightLeft<=winLeft) src='praca nocna 10h';
+    $('contTime').textContent=fmtHMs(eff);
+    $('contTime').classList.toggle('bad', eff<=0);
+    $('dialSub').innerHTML=tr('pozostało')+'<br><span class="ds2">'+tr(src)+'</span>';
+  } else {
+    $('contTime').textContent=fmtHMs(mins);
+    $('contTime').classList.toggle('bad',over);
+    $('dialSub').innerHTML=tr('jazda ciągła')+'<br><span class="ds2">'+tr('limit 4:30')+'</span>';
+  }
 }
 
 /* ================= RENDER: DZIŚ ================= */
-let lastR=null;
+let lastR=null, dialMode=0;
 function assistCard(title,dotColor,rowsHTML){
   return `<div class="card"><h3><span class="dot" style="background:${dotColor}"></span>${title}</h3>${rowsHTML}</div>`;
 }
@@ -2581,6 +2608,12 @@ function tick(){
 }
 
 function bindAll(){
+$('dialCenter').onclick=()=>{
+  dialMode = dialMode ? 0 : 1;
+  try{ localStorage.setItem('tacho_dialMode', dialMode); }catch(e){}
+  if(lastR) setDial(lastR.contDrive);
+  if(navigator.vibrate) navigator.vibrate(12);
+};
 $('gpsToWork').onclick=()=>{ $('gpsOvl').classList.remove('show'); startAct('work'); };
 $('gpsStay').onclick=()=>{ $('gpsOvl').classList.remove('show'); };
 document.querySelectorAll('nav button').forEach(b=>b.onclick=()=>{
@@ -2666,6 +2699,7 @@ document.querySelectorAll('.sw[data-alarm-snd]').forEach(s=>s.onclick=()=>{
   if(state.settings.alarmSnd!==false) chime('done');
   toast('Dźwięk '+(state.settings.alarmSnd!==false?'włączony':'wyłączony'));
 });
+try{ dialMode = localStorage.getItem('tacho_dialMode')==='1' ? 1 : 0; }catch(e){}
 if(state.settings.gpsAuto===true) setTimeout(gpsStart, 800);
 $('endDayBtn').onclick=()=>startAct('rest');
 $('startDayBtn').onclick=()=>startAct('work');
