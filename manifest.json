@@ -1,0 +1,30 @@
+{
+  "name": "TachoStróż — asystent czasu pracy kierowcy",
+  "short_name": "TachoStróż",
+  "description": "Liczniki 561/2006 i ustawy PL, alarmy przerw, analiza naruszeń, asystent.",
+  "start_url": "./tachostroz.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#0A0D12",
+  "theme_color": "#0A0D12",
+  "lang": "pl",
+  "icons": [
+    {
+      "src": "icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    },
+    {
+      "src": "icon-maskable-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ]
+}
