@@ -169,6 +169,9 @@ body.dimmed header,body.dimmed main,body.dimmed nav{filter:brightness(.3)}
 
 /* ---------- Przyciski aktywności ---------- */
 .acts{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px}
+.acts.locked .act,.acts.locked .stop{opacity:.32;filter:grayscale(.7);pointer-events:none}
+.lockNote{display:none;grid-column:1/-1;text-align:center;font-size:.85rem;color:var(--mut);padding:6px 4px}
+.acts.locked .lockNote{display:block}
 .act{border-radius:18px;padding:14px 8px 12px;border:1px solid var(--glass-brd);background:var(--glassL);
   box-shadow:inset 0 1px 0 var(--glass-hi),inset 0 -1px 0 var(--glass-lo);
   display:flex;flex-direction:column;align-items:center;gap:6px;font-weight:600;font-size:.92rem;
@@ -534,6 +537,7 @@ window.addEventListener('unhandledrejection',function(e){try{
     <button class="act act-out" data-act="out"><span class="t">OUT — poza zakresem</span><span class="tbadge" data-tb="out"></span></button>
     <button class="stop" id="stopBtn">■ ZAKOŃCZ BIEŻĄCĄ AKTYWNOŚĆ</button>
     <button class="endday" id="endDayBtn">🌙 Zakończ dzień — rozpocznij odpoczynek</button>
+    <div class="lockNote">🔒 Dzień zakończony — aktywności zablokowane do „Rozpocznij dzień”</div>
     <button class="startday" id="startDayBtn" style="display:none">☀️ Rozpocznij dzień — od pracy (przegląd, dokumenty)</button>
   </div>
 
@@ -1124,7 +1128,7 @@ const fmtHMs=m=>{m=Math.max(0,Math.round(m));return Math.floor(m/60)+':'+pad(m%6
 const DAYS=['niedziela','poniedziałek','wtorek','środa','czwartek','piątek','sobota'];
 function toLocalInput(ms){const d=new Date(ms);return d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate())+'T'+pad(d.getHours())+':'+pad(d.getMinutes());}
 function toast(msg){const t=document.getElementById('toast');t.textContent=tr(msg);t.classList.add('show');clearTimeout(t._h);t._h=setTimeout(()=>t.classList.remove('show'),2400);}
-const APP_VER='v2026-09-28c';
+const APP_VER='v2026-09-28d';
 const $=id=>document.getElementById(id);
 
 /* ================= I18N ================= */
@@ -1586,6 +1590,9 @@ const TR_PAIRS=[
 ["Kraj zakończenia ustawiony?","End country entered?"],["Wydruk zrobiony?","Printout done?"],
 ["OUT ustawiony?","OUT set?"],["Karta zczytana?","Card data downloaded?"],
 ["✓ Checklista OK — dobrej trasy","✓ Checklist OK — safe trip"],["✓ Checklista OK — dobrego odpoczynku","✓ Checklist OK — enjoy your rest"],
+["🔒 Dzień zakończony — aktywności zablokowane do „Rozpocznij dzień”","🔒 Day ended — activities locked until “Start the day”"],
+["🔒 Dzień zakończony — najpierw „☀️ Rozpocznij dzień”","🔒 Day ended — tap “☀️ Start the day” first"],
+["Wykryto jazdę — rozpocznij dzień","Driving detected — start the day"],
 ];
 TR_PAIRS.sort((a,b)=>b[0].length-a[0].length);
 function tr(s){ if(LANG!=='en'||!s) return s; for(const p of TR_PAIRS) s=s.split(p[0]).join(p[1]); return s; }
@@ -1839,7 +1846,10 @@ function renderToday(R,now){
       +((R.contDrive>0&&rd<45)?`<div class="row"><span class="k">Reset 4:30 i 6h (przerwa 45 min)</span>${cds(t45)}</div>`:''));
   }
   const edb=$('endDayBtn'); if(edb) edb.style.display=(rcur&&rcur.type==='rest')?'none':'';
-  const sdb=$('startDayBtn'); if(sdb) sdb.style.display=(rcur&&rcur.type==='rest'&&(now-rcur.start)/MIN>=545)?'':'none'; /* prog 9:05 */
+  if(state.settings.dayLocked===true && rcur && rcur.type!=='rest'){ state.settings.dayLocked=false; save(); }  // np. ręczny wpis w Dzienniku
+  const locked=state.settings.dayLocked===true;
+  document.querySelectorAll('.acts').forEach(a=>a.classList.toggle('locked',locked));
+  const sdb=$('startDayBtn'); if(sdb) sdb.style.display=(locked||(rcur&&rcur.type==='rest'&&(now-rcur.start)/MIN>=545))?'':'none'; /* prog 9:05 */
   A+=assistCard('Przerwa w pracy — reguła 6 h','var(--yellow)',
     `<div class="row"><span class="k">Praca dziś łącznie (jazda + inna)</span><span class="v" style="font-family:var(--mono);font-weight:600">${fmtHMs(R.dayWork)}</span></div>`
     +(R.workRuleDone
@@ -2012,7 +2022,18 @@ function saveModal(){
 }
 
 /* ================= AKCJE SZYBKIE ================= */
+let lockGpsAsk=0;
 function startAct(type, auto){
+  if(state.settings.dayLocked===true){
+    if(auto && type==='drive'){                              // GPS wykrył jazdę przy zamkniętym dniu → zapytaj o start dnia
+      if(!$('ckOvl').classList.contains('show') && Date.now()-lockGpsAsk>10*60000){
+        lockGpsAsk=Date.now(); toast('Wykryto jazdę — rozpocznij dzień');
+        runChecklist('start',()=>{ state.settings.dayLocked=false; startAct('drive',true); });
+      }
+      return;
+    }
+    toast('🔒 Dzień zakończony — najpierw „☀️ Rozpocznij dzień”'); return;
+  }
   if(!auto) gpsManualAt=Date.now();                          // decyzja kierowcy ma pierwszeństwo
   const n=nowMin();
   const open=state.events.find(e=>e.end==null);
@@ -2023,6 +2044,7 @@ function startAct(type, auto){
   save();renderAll();toast('▶ '+TYPES[type].name+' od '+fmtClock(n));
 }
 function stopAct(){
+  if(state.settings.dayLocked===true){ toast('🔒 Dzień zakończony — najpierw „☀️ Rozpocznij dzień”'); return; }
   const open=state.events.find(e=>e.end==null);
   if(!open){toast('Nic nie trwa');return;}
   const n=nowMin();
@@ -3013,8 +3035,8 @@ document.querySelectorAll('.sw[data-alarm-snd]').forEach(s=>s.onclick=()=>{
 try{ dialMode = localStorage.getItem('tacho_dialMode')==='1' ? 1 : 0; }catch(e){}
 setTimeout(keepAliveOn, 1200);
 if(state.settings.gpsAuto===true) setTimeout(gpsStart, 800);
-$('endDayBtn').onclick=()=>runChecklist('end',()=>startAct('rest'));
-$('startDayBtn').onclick=()=>runChecklist('start',()=>startAct('work'));
+$('endDayBtn').onclick=()=>runChecklist('end',()=>{ startAct('rest'); state.settings.dayLocked=true; save(); renderAll(); });
+$('startDayBtn').onclick=()=>runChecklist('start',()=>{ state.settings.dayLocked=false; startAct('work'); });
 $('ckYes').onclick=ckNext;
 $('ckCancel').onclick=()=>{ $('ckOvl').classList.remove('show'); ck=null; };
 $('ckSetBase').onclick=()=>{
