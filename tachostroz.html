@@ -320,6 +320,27 @@ nav .badge{position:absolute;top:1px;right:calc(50% - 20px);min-width:16px;heigh
 #alarmOvl.show{display:flex}
 #ckOvl{position:fixed;inset:0;background:rgba(4,6,10,.84);z-index:61;display:none;align-items:center;justify-content:center;padding:24px}
 #ckOvl.show{display:flex}
+.ev.restOK{border:2px solid var(--green)!important}
+.ev.bad{border:2px solid var(--red)!important}
+.ev.acked{border:2px dashed var(--amber)!important}
+.evV{flex-basis:100%;margin-top:8px;padding:8px 10px;border-radius:10px;background:color-mix(in srgb,var(--red) 10%,transparent);font-size:.8rem;line-height:1.4;color:var(--ink)}
+.evV.ok{background:color-mix(in srgb,var(--amber) 12%,transparent)}
+.evV button{display:block;margin-top:6px;border:0;border-radius:8px;padding:7px 10px;font:inherit;font-weight:700;font-size:.8rem;background:var(--red);color:#fff}
+.evV.ok button{background:none;color:var(--mut);padding:4px 0;font-weight:600;text-decoration:underline}
+.restTag{color:var(--green);font-weight:700;font-size:.72rem;margin-left:4px}
+#vOvl{position:fixed;inset:0;background:rgba(4,6,10,.8);z-index:62;display:none;align-items:center;justify-content:center;padding:18px}
+#vOvl.show{display:flex}
+#vBox{background:var(--panel,var(--glass));border:2px solid var(--red);border-radius:20px;padding:20px;max-width:440px;width:100%;max-height:90vh;overflow:auto;color:var(--ink);box-shadow:0 10px 40px rgba(0,0,0,.4)}
+#vBox h2{font-size:1.15rem;margin-bottom:8px}
+#vBox .vMsg{font-size:.88rem;color:var(--mut);line-height:1.45;margin-bottom:12px}
+#vBox .lbl2{font-size:.72rem;letter-spacing:.12em;text-transform:uppercase;color:var(--mut);font-weight:700;margin:10px 0 6px}
+#vChips{display:flex;flex-wrap:wrap;gap:6px}
+#vChips button{border:1px solid var(--line);background:var(--panel2,var(--panel));color:var(--ink);border-radius:16px;padding:6px 10px;font:inherit;font-size:.8rem}
+#vChips button.sel{background:var(--amber);color:#111;border-color:var(--amber)}
+#vTxt{width:100%;min-height:130px;padding:10px;font:inherit;font-size:.85rem;line-height:1.4;color:var(--ink);margin-bottom:6px}
+#vBox .vWarn{font-size:.75rem;color:var(--mut);margin:6px 0 12px}
+#vBox .btn{margin-top:8px}
+#vBox .ckCancel{background:none;border:0;color:var(--mut);font:inherit;font-size:.85rem;margin-top:10px;padding:6px;text-decoration:underline;display:block;width:100%}
 #ckBox{background:var(--panel,var(--glass));border:2px solid var(--amber);border-radius:22px;padding:22px 22px calc(20px + env(safe-area-inset-bottom)/2);max-width:420px;width:100%;text-align:center;box-shadow:0 10px 40px rgba(0,0,0,.4);color:var(--ink)}
 #ckBox .ckStep{font-size:.72rem;letter-spacing:.16em;text-transform:uppercase;color:var(--mut);font-weight:600}
 #ckBox .ckDots{display:flex;gap:6px;justify-content:center;margin:8px 0 14px}
@@ -737,6 +758,20 @@ window.addEventListener('unhandledrejection',function(e){try{
   <button class="ckCancel" id="ckCancel">Anuluj</button>
 </div></div>
 
+<div id="vOvl"><div id="vBox">
+  <h2>🧾 Wydruk i opis naruszenia</h2>
+  <div class="vMsg" id="vMsg"></div>
+  <div class="lbl2">Przyczyna (dotknij)</div>
+  <div id="vChips"></div>
+  <div class="lbl2">Opis na odwrocie wydruku</div>
+  <textarea id="vTxt"></textarea>
+  <div class="vWarn">Opis nie kasuje naruszenia — to Twoje wyjaśnienie dla kontroli. Wydruk podpisz i zachowaj.</div>
+  <button class="btn ghost" id="vCopy">📋 Kopiuj opis</button>
+  <button class="btn" id="vAck">✓ Wydruk zrobiony i opisany</button>
+  <button class="ckCancel" id="vUndo" style="display:none">Cofnij oznaczenie „opisane”</button>
+  <button class="ckCancel" id="vClose">Zamknij</button>
+</div></div>
+
 <div id="gapOvl"><div id="gapBox">
   <h2>🛏️ Długa przerwa w danych</h2>
   <p id="gapTxt"></p>
@@ -1128,7 +1163,7 @@ const fmtHMs=m=>{m=Math.max(0,Math.round(m));return Math.floor(m/60)+':'+pad(m%6
 const DAYS=['niedziela','poniedziałek','wtorek','środa','czwartek','piątek','sobota'];
 function toLocalInput(ms){const d=new Date(ms);return d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate())+'T'+pad(d.getHours())+':'+pad(d.getMinutes());}
 function toast(msg){const t=document.getElementById('toast');t.textContent=tr(msg);t.classList.add('show');clearTimeout(t._h);t._h=setTimeout(()=>t.classList.remove('show'),2400);}
-const APP_VER='v2026-09-28e';
+const APP_VER='v2026-09-28f';
 const $=id=>document.getElementById(id);
 
 /* ================= I18N ================= */
@@ -1593,6 +1628,12 @@ const TR_PAIRS=[
 ["🔒 Dzień zakończony — aktywności zablokowane do „Rozpocznij dzień”","🔒 Day ended — activities locked until “Start the day”"],
 ["🔒 Dzień zakończony — najpierw „☀️ Rozpocznij dzień”","🔒 Day ended — tap “☀️ Start the day” first"],
 ["Wykryto jazdę — rozpocznij dzień","Driving detected — start the day"],
+["🧾 Wydruk i opis naruszenia","🧾 Printout & note for the violation"],["Przyczyna (dotknij)","Reason (tap)"],
+["Opis na odwrocie wydruku","Note on the back of the printout"],["📋 Kopiuj opis","📋 Copy note"],
+["✓ Wydruk zrobiony i opisany","✓ Printout made and annotated"],["✓ Zapisz opis","✓ Save note"],["Cofnij oznaczenie „opisane”","Undo “annotated” mark"],["Zamknij","Close"],
+["Opis nie kasuje naruszenia — to Twoje wyjaśnienie dla kontroli. Wydruk podpisz i zachowaj.","The note does not erase the violation — it is your explanation for an inspection. Sign and keep the printout."],
+["🧾 Zrobiłem wydruk — opisz","🧾 Printout made — annotate"],["✓ Wydruk opisany — ","✓ Printout annotated — "],["pokaż opis","show note"],
+["Opisane na wydruku: ","Annotated on printout: "],["tygodniowy ✓","weekly ✓"],["dobowy ✓","daily ✓"],
 ];
 TR_PAIRS.sort((a,b)=>b[0].length-a[0].length);
 function tr(s){ if(LANG!=='en'||!s) return s; for(const p of TR_PAIRS) s=s.split(p[0]).join(p[1]); return s; }
@@ -1942,38 +1983,89 @@ function renderToday(R,now){
 }
 
 /* ================= RENDER: DZIENNIK ================= */
+/* ================= NARUSZENIA: WYDRUK + OPIS ================= */
+const V_SHORT={CONT:'Przekroczenie czasu jazdy ciągłej (4 h 30 min)',DDRIVE:'Przekroczenie dziennego czasu jazdy',
+ W6H:'Brak przerwy po 6 h pracy (art. 13 ustawy o czasie pracy kierowców)',W45:'Za krótkie przerwy przy dniu pracy powyżej 9 h',
+ NIGHT10:'Przekroczenie 10 h pracy przy pracy w porze nocnej (art. 21 ustawy)',DREST:'Odpoczynek dobowy nieodebrany w ciągu 24 h',
+ DRED:'Nadliczbowy skrócony odpoczynek dobowy',EXT:'Trzecie wydłużenie jazdy do 10 h w tygodniu',WDRIVE:'Przekroczenie tygodniowego czasu jazdy',
+ BIWEEK:'Przekroczenie dwutygodniowego czasu jazdy (90 h)',SIX24:'Odpoczynek tygodniowy rozpoczęty po ponad 6 dobach',
+ '2RED':'Dwa skrócone odpoczynki tygodniowe z rzędu',COMP:'Nieoddana rekompensata za skrócony odpoczynek tygodniowy'};
+const V_ART12=['CONT','DDRIVE','DREST'];
+const V_REASONS=['brak wolnego miejsca parkingowego','korek / zator drogowy','wypadek na trasie, objazd','oczekiwanie na załadunek / rozładunek','trudne warunki pogodowe','kontrola drogowa','awaria pojazdu','zamknięta droga'];
+let vCur=null, vReason='';
+function violEvent(at,now){
+  const ev=state.events; let hit=ev.find(e=>e.start<at && at<=(e.end||now));
+  if(!hit){ let best=null; for(const e of ev){ const en=e.end||now; if(en<=at && (!best||en>(best.end||now))) best=e; } hit=best; }
+  if(!hit){ let best=null; for(const e of ev){ if(e.start>=at && (!best||e.start<best.start)) best=e; } hit=best; }
+  return hit;
+}
+function violMap(R,now){               // [{v,key,ev,ack}]
+  const acks=state.settings.violAck||{};
+  return R.violations.filter(v=>v.sev==='viol').map(v=>{ const e=violEvent(v.at,now); const key=v.code+'_'+(e?e.id:v.at); return {v,key,ev:e,ack:acks[key]||null}; });
+}
+function violText(v,reason){
+  const d=new Date(v.at), ds=pad(d.getDate())+'.'+pad(d.getMonth()+1)+'.'+d.getFullYear()+' '+fmtClock(v.at);
+  let t=ds+' — '+(V_SHORT[v.code]||'Naruszenie')+'.\n';
+  t+='Przyczyna: '+(reason||'……………………')+'.\n';
+  if(V_ART12.includes(v.code)) t+='Odstąpiono od przepisów na podstawie art. 12 rozporządzenia (WE) nr 561/2006 w celu dotarcia do odpowiedniego miejsca postoju, bez zagrożenia bezpieczeństwa ruchu drogowego.\n';
+  t+='Imię i nazwisko: ……………………   Podpis: ……………';
+  return t;
+}
+function openViol(key){
+  const m=violMap(lastR||analyze(state.events,Date.now(),state.settings),Date.now()).find(x=>x.key===key); if(!m) return;
+  vCur=m; vReason=(m.ack&&m.ack.reason)||'';
+  $('vMsg').innerHTML=tr(m.v.msg)+'<br><b>'+fmtDT(m.v.at)+'</b>';
+  $('vChips').innerHTML=V_REASONS.map(r=>'<button class="'+(r===vReason?'sel':'')+'">'+tr(r)+'</button>').join('');
+  $('vChips').querySelectorAll('button').forEach((b,i)=>b.onclick=()=>{ vReason=V_REASONS[i]; $('vChips').querySelectorAll('button').forEach((x,j)=>x.classList.toggle('sel',j===i)); $('vTxt').value=violText(m.v,vReason); });
+  $('vTxt').value=(m.ack&&m.ack.text)||violText(m.v,vReason);
+  $('vAck').textContent=tr(m.ack?'✓ Zapisz opis':'✓ Wydruk zrobiony i opisany');
+  $('vUndo').style.display=m.ack?'block':'none';
+  $('vOvl').classList.add('show');
+}
 function renderLog(){
   const list=[...state.events].sort((a,b)=>b.start-a.start);
   if(!list.length){$('logList').innerHTML=tr(`<div class="empty"><div class="big">🛣️</div>Brak wpisów. Użyj przycisków na zakładce „Dziś" albo dodaj wpis ręcznie.</div>`);return;}
   let html='',day='';
   const sums={};
   for(const e of list){const k=new Date(e.start).toDateString();(sums[k]=sums[k]||{drive:0})[e.type==='drive'?'drive':'x']= (sums[k][e.type==='drive'?'drive':'x']||0)+((e.end||Date.now())-e.start)/MIN;}
+  const vm=lastR?violMap(lastR,Date.now()):[], vByEv={};
+  for(const m of vm) if(m.ev) (vByEv[m.ev.id]=vByEv[m.ev.id]||[]).push(m);
   for(const e of list){
     const k=new Date(e.start).toDateString();
     if(k!==day){day=k;const d=new Date(e.start);
       html+=`<div class="day-h"><span class="d">${(LANG==='en'?DAYS_EN:DAYS)[d.getDay()]}, ${pad(d.getDate())}.${pad(d.getMonth()+1)}.${d.getFullYear()}</span><span class="s">jazda ${fmtHMs(sums[k].drive||0)}</span></div>`;}
     const dur=((e.end||Date.now())-e.start)/MIN;
-    html+=`<div class="ev" data-id="${e.id}">
+    const vv=vByEv[e.id]||[], open=vv.filter(m=>!m.ack);
+    const restOK=e.type==='rest' && dur>=L.DAILY_REST_RED;
+    const cls=open.length?' bad':(vv.length?' acked':(restOK?' restOK':''));
+    const vHtml=vv.map(m=>m.ack
+      ? `<div class="evV ok">✓ Wydruk opisany — ${V_SHORT[m.v.code]||m.v.code}<button data-vk="${m.key}">pokaż opis</button></div>`
+      : `<div class="evV">⚠️ ${m.v.msg}<button data-vk="${m.key}">🧾 Zrobiłem wydruk — opisz</button></div>`).join('');
+    html+=`<div class="ev${cls}" data-id="${e.id}" style="${vv.length?'flex-wrap:wrap':''}">
       <div class="ic" style="color:${TYPES[e.type].color};background:var(--panel2)">${ICONS[e.type]}</div>
       <div class="mid"><div class="tt">${TYPES[e.type].name}${e.end?'':' <span style="color:var(--green)">• trwa</span>'}</div>
-      <div class="sub">${fmtClock(e.start)} – ${e.end?fmtClock(e.end):'…'}</div>
+      <div class="sub">${fmtClock(e.start)} – ${e.end?fmtClock(e.end):'…'}${restOK?`<span class="restTag">${dur>=L.WEEKLY_REST_RED?'tygodniowy':'dobowy'} ✓</span>`:''}</div>
       ${e.note?`<div class="note">📝 ${e.note}</div>`:''}</div>
-      <div class="dur mono">${fmtHMs(dur)}</div></div>`;
+      <div class="dur mono">${fmtHMs(dur)}</div>${vHtml}</div>`;
   }
   $('logList').innerHTML=tr(html);
   document.querySelectorAll('.ev').forEach(el=>el.onclick=()=>openModal(el.dataset.id));
+  document.querySelectorAll('.evV button').forEach(b=>b.onclick=ev=>{ ev.stopPropagation(); openViol(b.dataset.vk); });
 }
 
 /* ================= RENDER: ANALIZA ================= */
 function renderAnalysis(R,now){
   const V=R.violations;
-  const viol=V.filter(v=>v.sev==='viol'), warn=V.filter(v=>v.sev==='warn'), info=V.filter(v=>v.sev==='info');
+  const vmA=violMap(R,now), ackd=vmA.filter(m=>m.ack).map(m=>m.v);
+  const viol=vmA.filter(m=>!m.ack).map(m=>m.v), warn=V.filter(v=>v.sev==='warn'), info=V.filter(v=>v.sev==='info');
   const b=$('vBadge'); b.style.display=viol.length?'block':'none'; b.textContent=viol.length;
   let h='';
   if(!state.events.length){$('anBody').innerHTML=tr(`<div class="empty"><div class="big">📊</div>Analiza pojawi się po dodaniu pierwszych wpisów.</div>`);return;}
   h+=`<div class="card"><h3><span class="dot" style="background:${viol.length?'var(--red)':'var(--green)'}"></span>${viol.length?`Naruszenia: ${viol.length}`:'Brak naruszeń — jedziesz czysto ✓'}</h3>`;
   for(const v of viol) h+=`<div class="viol">${v.msg}<div class="when">${fmtDT(v.at)}</div></div>`;
   h+='</div>';
+  if(ackd.length){h+='<div class="card"><h3><span class="dot" style="background:var(--amber)"></span>Opisane na wydruku: '+ackd.length+'</h3>';
+    for(const v of ackd) h+=`<div class="viol warn">✓ ${v.msg}<div class="when">${fmtDT(v.at)}</div></div>`; h+='</div>';}
   if(warn.length){h+='<div class="card"><h3><span class="dot" style="background:var(--yellow)"></span>Ostrzeżenia</h3>';
     for(const v of warn) h+=`<div class="viol warn">${v.msg}<div class="when">${fmtDT(v.at)}</div></div>`; h+='</div>';}
   if(info.length){h+='<div class="card"><h3><span class="dot" style="background:var(--blue)"></span>Wykorzystane furtki i terminy</h3>';
@@ -3038,6 +3130,13 @@ if(state.settings.gpsAuto===true) setTimeout(gpsStart, 800);
 $('endDayBtn').onclick=()=>runChecklist('end',()=>{ startAct('rest'); state.settings.dayLocked=true; save(); renderAll(); });
 $('startDayBtn').onclick=()=>runChecklist('start',()=>{ state.settings.dayLocked=false; startAct('work'); });
 $('ckYes').onclick=ckNext;
+$('vClose').onclick=()=>{ $('vOvl').classList.remove('show'); vCur=null; };
+$('vCopy').onclick=()=>{ const t=$('vTxt').value; (navigator.clipboard?navigator.clipboard.writeText(t):Promise.reject()).then(()=>toast('Skopiowano opis')).catch(()=>{ $('vTxt').select(); try{document.execCommand('copy');toast('Skopiowano opis');}catch(e){toast('Zaznacz i skopiuj ręcznie');} }); };
+$('vAck').onclick=()=>{ if(!vCur) return; state.settings.violAck=state.settings.violAck||{};
+  state.settings.violAck[vCur.key]={ts:Date.now(),reason:vReason,text:$('vTxt').value,code:vCur.v.code};
+  save(); $('vOvl').classList.remove('show'); vCur=null; renderAll(); toast('✓ Naruszenie oznaczone jako opisane'); };
+$('vUndo').onclick=()=>{ if(!vCur||!state.settings.violAck) return; delete state.settings.violAck[vCur.key];
+  save(); $('vOvl').classList.remove('show'); vCur=null; renderAll(); toast('Cofnięto oznaczenie'); };
 $('ckCancel').onclick=()=>{ $('ckOvl').classList.remove('show'); ck=null; };
 $('ckSetBase').onclick=()=>{
   if(!navigator.geolocation){ toast('Brak GPS w tym telefonie'); return; }
