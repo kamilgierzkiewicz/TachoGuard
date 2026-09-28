@@ -315,6 +315,17 @@ nav .badge{position:absolute;top:1px;right:calc(50% - 20px);min-width:16px;heigh
 /* ---------- Alarm przerwy ---------- */
 #alarmOvl{position:fixed;inset:0;background:rgba(4,6,10,.84);z-index:60;display:none;align-items:center;justify-content:center;padding:24px}
 #alarmOvl.show{display:flex}
+#ckOvl{position:fixed;inset:0;background:rgba(4,6,10,.84);z-index:61;display:none;align-items:center;justify-content:center;padding:24px}
+#ckOvl.show{display:flex}
+#ckBox{background:var(--panel,var(--glass));border:2px solid var(--amber);border-radius:22px;padding:22px 22px calc(20px + env(safe-area-inset-bottom)/2);max-width:420px;width:100%;text-align:center;box-shadow:0 10px 40px rgba(0,0,0,.4);color:var(--ink)}
+#ckBox .ckStep{font-size:.72rem;letter-spacing:.16em;text-transform:uppercase;color:var(--mut);font-weight:600}
+#ckBox .ckDots{display:flex;gap:6px;justify-content:center;margin:8px 0 14px}
+#ckBox .ckDots i{width:8px;height:8px;border-radius:50%;background:var(--mut);opacity:.3}
+#ckBox .ckDots i.done{background:var(--arc-g);opacity:1}#ckBox .ckDots i.cur{background:var(--amber);opacity:1}
+#ckBox .ckIc{font-size:2.6rem;margin-bottom:6px}
+#ckBox h2{font-size:1.3rem;margin-bottom:6px;line-height:1.3}
+#ckBox .ckLoc{font-size:.8rem;color:var(--mut);margin-bottom:16px;min-height:1em}
+#ckBox .ckCancel{background:none;border:0;color:var(--mut);font:inherit;font-size:.85rem;margin-top:12px;padding:6px 12px;text-decoration:underline}
 #alarmBox{background:var(--glass);-webkit-backdrop-filter:blur(26px) saturate(160%);backdrop-filter:blur(26px) saturate(160%);border:2px solid var(--amber);border-radius:26px;padding:26px 22px calc(22px + env(safe-area-inset-bottom)/2);max-width:420px;width:100%;text-align:center;animation:alarmPulse 1.1s ease infinite}
 #alarmBox.crit{border-color:var(--red);animation-name:alarmPulseR}
 #alarmBox.okA{border-color:var(--arc-g);animation:none;box-shadow:inset 0 1px 0 var(--glass-hi),0 0 44px -8px var(--arc-g)}
@@ -602,6 +613,16 @@ window.addEventListener('unhandledrejection',function(e){try{
     <div class="switch"><div class="txt">Dźwięk alarmów <small>iPhone: pierwszy dotyk odblokowuje audio; sprawdź też boczny przełącznik trybu cichego i głośność</small></div><div class="sw" data-alarm-snd></div></div>
   </div>
   <div class="card">
+    <h3>Checklisty dnia</h3>
+    <p class="hint-inline" style="margin:0 0 6px">Przed <b>Rozpocznij dzień</b> i <b>Zakończ dzień</b> — pytania krok po kroku. Pytania o kartę, wpis manualny, wydruk i zczytanie karty pojawiają się <b>tylko na bazie</b> (w promieniu 500 m od bazy wg GPS; brak lokalizacji = pełna lista).</p>
+    <div class="switch"><div class="txt">Checklisty włączone <small>delikatny sygnał przy każdym pytaniu</small></div><div class="sw" data-ck></div></div>
+    <p class="hint-inline" id="ckBaseInfo" style="margin:8px 0 8px"></p>
+    <input id="ckAddr" type="text" autocomplete="off" placeholder="Adres bazy, np. Jaskółek 20f, Studzienice" style="width:100%;margin-bottom:8px">
+    <button class="btn" id="ckFindAddr" style="margin-bottom:8px">🔎 Zapisz adres jako bazę</button>
+    <button class="btn ghost" id="ckSetBase">📍 Ustaw bazę w obecnym miejscu</button>
+    <p class="hint-inline" style="margin:8px 0 0">Adres wyszukiwany w mapie OpenStreetMap (wymaga internetu). Możesz też wpisać współrzędne, np. <b>50.0194, 18.9595</b>.</p>
+  </div>
+  <div class="card">
     <h3>Auto-jazda z GPS</h3>
     <p class="hint-inline" style="margin:0 0 6px">Wykrywa ruch pojazdu i <b>sam włącza Jazdę</b>. Nigdy sam jej nie wyłącza — po dłuższym postoju tylko zapyta. Działa <b>tylko przy włączonym ekranie</b> (iOS wyłącza GPS po zablokowaniu telefonu). To pomoc, nie zamiennik tachografu.</p>
     <div class="switch"><div class="txt">Włącz auto-jazdę <small>wymaga zgody na lokalizację</small></div><div class="sw" data-gps></div></div>
@@ -700,6 +721,16 @@ window.addEventListener('unhandledrejection',function(e){try{
   <h2 id="alarmTitle"></h2>
   <p id="alarmText"></p>
   <button class="btn" id="alarmOk">OK, przyjąłem</button>
+</div></div>
+
+<div id="ckOvl"><div id="ckBox">
+  <div class="ckStep" id="ckStep"></div>
+  <div class="ckDots" id="ckDots"></div>
+  <div class="ckIc" id="ckIc">📍</div>
+  <h2 id="ckQ"></h2>
+  <div class="ckLoc" id="ckLoc"></div>
+  <button class="btn" id="ckYes">✓ Tak, zrobione</button>
+  <button class="ckCancel" id="ckCancel">Anuluj</button>
 </div></div>
 
 <div id="gapOvl"><div id="gapBox">
@@ -1093,7 +1124,7 @@ const fmtHMs=m=>{m=Math.max(0,Math.round(m));return Math.floor(m/60)+':'+pad(m%6
 const DAYS=['niedziela','poniedziałek','wtorek','środa','czwartek','piątek','sobota'];
 function toLocalInput(ms){const d=new Date(ms);return d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate())+'T'+pad(d.getHours())+':'+pad(d.getMinutes());}
 function toast(msg){const t=document.getElementById('toast');t.textContent=tr(msg);t.classList.add('show');clearTimeout(t._h);t._h=setTimeout(()=>t.classList.remove('show'),2400);}
-const APP_VER='v2026-09-28a';
+const APP_VER='v2026-09-28c';
 const $=id=>document.getElementById(id);
 
 /* ================= I18N ================= */
@@ -1540,6 +1571,21 @@ const TR_PAIRS=[
 ["Głośny alarm","Loud alarm"],
 ["Powtarzaj do potwierdzenia","Repeat until acknowledged"],
 ["Utrzymuj w tle","Keep alive in background"],
+["Checklisty dnia","Daily checklists"],
+["Checklisty włączone","Checklists on"],["delikatny sygnał przy każdym pytaniu","soft chime on every question"],
+["📍 Ustaw bazę w obecnym miejscu","📍 Set base at current location"],
+["Baza: ","Base: "],[" (promień 500 m)"," (500 m radius)"],["🔎 Zapisz adres jako bazę","🔎 Save address as base"],
+["Sprawdzam lokalizację…","Checking location…"],["Start dnia","Day start"],["Koniec dnia","Day end"],
+["✓ Tak, zrobione","✓ Yes, done"],["Anuluj","Cancel"],
+["📍 Baza — Studzienice","📍 Base — Studzienice"],["📍 Poza bazą","📍 Away from base"],["📍 Lokalizacja nieznana — pełna lista","📍 Location unknown — full list"],
+["Karta kierowcy włożona do tachografu?","Driver card inserted in the tachograph?"],
+["Kraj rozpoczęcia ustawiony?","Start country entered?"],
+["Wpis manualny w tachografie zrobiony?","Manual entry in the tachograph done?"],
+["Telefon podłączony do CarPlay?","Phone connected to CarPlay?"],
+["Telefon połączony z tachografem?","Phone connected to the tachograph?"],
+["Kraj zakończenia ustawiony?","End country entered?"],["Wydruk zrobiony?","Printout done?"],
+["OUT ustawiony?","OUT set?"],["Karta zczytana?","Card data downloaded?"],
+["✓ Checklista OK — dobrej trasy","✓ Checklist OK — safe trip"],["✓ Checklista OK — dobrego odpoczynku","✓ Checklist OK — enjoy your rest"],
 ];
 TR_PAIRS.sort((a,b)=>b[0].length-a[0].length);
 function tr(s){ if(LANG!=='en'||!s) return s; for(const p of TR_PAIRS) s=s.split(p[0]).join(p[1]); return s; }
@@ -2252,6 +2298,8 @@ function chime(kind){ try{
   const t=audioCtx.currentTime+0.05;
   if(kind==='crit'){        /* pilny: 6× dwuton opadający, pełna głośność */
     for(let i=0;i<6;i++){ tone(988,0.18,t+i*0.28,0.75,'square'); tone(659,0.18,t+i*0.28+0.13,0.75,'square'); }
+  } else if(kind==='soft'){ /* checklista: cichy dwudźwięk */
+    tone(784,0.35,t,0.07); tone(1175,0.5,t+0.13,0.05);
   } else if(kind==='done'){ /* koniec przerwy: wznosząca fanfara C-E-G-C */
     tone(523,0.16,t); tone(659,0.16,t+0.15); tone(784,0.2,t+0.3); tone(1047,0.34,t+0.48,0.38);
   } else {                  /* ostrzeżenie: dwa piknięcia + wyższy akcent */
@@ -2271,6 +2319,65 @@ function startAlarmLoop(kind){
   }, kind==='crit'?3500:5000);
 }
 function stopAlarmLoop(){ if(alarmLoopT){ clearInterval(alarmLoopT); alarmLoopT=null; } }
+/* ================= CHECKLISTY DNIA ================= */
+const CK_BASE_DEF={lat:50.01936, lon:18.9595135};   // Jaskółek 20f, 43-215 Studzienice
+const CK_RADIUS=500;
+const ckEsc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));                                  // m
+const CK_LISTS={
+  start:[
+    {ic:'💳',q:'Karta kierowcy włożona do tachografu?',base:1},
+    {ic:'🏳️',q:'Kraj rozpoczęcia ustawiony?'},
+    {ic:'✍️',q:'Wpis manualny w tachografie zrobiony?',base:1},
+    {ic:'🚘',q:'Telefon podłączony do CarPlay?'},
+    {ic:'📲',q:'Telefon połączony z tachografem?'}
+  ],
+  end:[
+    {ic:'🏁',q:'Kraj zakończenia ustawiony?'},
+    {ic:'🧾',q:'Wydruk zrobiony?',base:1},
+    {ic:'🟣',q:'OUT ustawiony?'},
+    {ic:'💾',q:'Karta zczytana?',base:1}
+  ]
+};
+let ck=null;
+function ckDist(a,b){ const R=6371000,r=x=>x*Math.PI/180, dLa=r(b.lat-a.lat), dLo=r(b.lon-a.lon);
+  const h=Math.sin(dLa/2)**2+Math.cos(r(a.lat))*Math.cos(r(b.lat))*Math.sin(dLo/2)**2; return 2*R*Math.asin(Math.sqrt(h)); }
+function runChecklist(kind,done){
+  if(state.settings.checklists===false){ done(); return; }
+  unlockAudio();
+  ck={kind,done,items:null,i:0,loc:''};
+  $('ckStep').textContent=''; $('ckDots').innerHTML=''; $('ckIc').textContent='📍';
+  $('ckQ').textContent=tr('Sprawdzam lokalizację…'); $('ckLoc').textContent=''; $('ckYes').style.visibility='hidden';
+  $('ckOvl').classList.add('show');
+  const go=atBase=>{
+    if(!ck) return;
+    const all=CK_LISTS[kind];
+    ck.items = atBase===false ? all.filter(x=>!x.base) : all;
+    ck.loc = atBase===true ? '📍 Baza — Studzienice' : atBase===false ? '📍 Poza bazą' : '📍 Lokalizacja nieznana — pełna lista';
+    ck.i=0; ckShow();
+  };
+  if(!navigator.geolocation){ go(null); return; }
+  let settled=false; const fin=v=>{ if(!settled){ settled=true; go(v); } };
+  setTimeout(()=>fin(null),9000);
+  navigator.geolocation.getCurrentPosition(p=>{
+    const base=state.settings.ckBase||CK_BASE_DEF;
+    const d=ckDist({lat:p.coords.latitude,lon:p.coords.longitude},base);
+    fin(d <= CK_RADIUS + Math.min(p.coords.accuracy||0,500));
+  },()=>fin(null),{enableHighAccuracy:true,timeout:8000,maximumAge:60000});
+}
+function ckShow(){
+  const n=ck.items.length, it=ck.items[ck.i];
+  $('ckStep').textContent=tr((ck.kind==='start'?'Start dnia':'Koniec dnia'))+' · '+(ck.i+1)+'/'+n;
+  $('ckDots').innerHTML=ck.items.map((_,k)=>'<i class="'+(k<ck.i?'done':k===ck.i?'cur':'')+'"></i>').join('');
+  $('ckIc').textContent=it.ic; $('ckQ').textContent=tr(it.q); $('ckLoc').textContent=tr(ck.loc);
+  $('ckYes').style.visibility='';
+  chime('soft'); if(navigator.vibrate) navigator.vibrate(30);
+}
+function ckNext(){
+  if(!ck||!ck.items) return;
+  if(++ck.i < ck.items.length){ ckShow(); return; }
+  const d=ck.done, k=ck.kind; ck=null; $('ckOvl').classList.remove('show');
+  d(); toast(tr(k==='start'?'✓ Checklista OK — dobrej trasy':'✓ Checklista OK — dobrego odpoczynku'));
+}
 function showDone(title,html){
   $('alarmBox').classList.remove('crit'); $('alarmBox').classList.add('okA');
   $('alarmTitle').textContent=tr(title);
@@ -2760,6 +2867,9 @@ function renderBackupStats(){
   document.querySelectorAll('.sw[data-dim]').forEach(s=>s.classList.toggle('on',state.settings.dimRest!==false));
   document.querySelectorAll('.sw[data-alarm-done]').forEach(s=>s.classList.toggle('on',state.settings.alarmDone!==false));
   document.querySelectorAll('.sw[data-alarm-snd]').forEach(s=>s.classList.toggle('on',state.settings.alarmSnd!==false));
+  document.querySelectorAll('.sw[data-ck]').forEach(s=>s.classList.toggle('on',state.settings.checklists!==false));
+  if($('ckBaseInfo')){ const cb=state.settings.ckBase; $('ckBaseInfo').innerHTML=tr('Baza: ')+'<b>'+ckEsc((cb&&cb.own)?(cb.name||'własna lokalizacja'):'Jaskółek 20f, 43-215 Studzienice')+'</b>'+tr(' (promień 500 m)'); }
+  if($('ckAddr') && document.activeElement!==$('ckAddr')) $('ckAddr').value=(state.settings.ckBase&&state.settings.ckBase.addr)||'Jaskółek 20f, 43-215 Studzienice';
   const thm=(state.settings&&state.settings.theme)||'auto';
   document.querySelectorAll('#themeSeg button').forEach(b=>b.classList.toggle('sel',b.dataset.th===thm));
   const am=(state.settings&&state.settings.aiModelMode)||'top';
@@ -2903,8 +3013,36 @@ document.querySelectorAll('.sw[data-alarm-snd]').forEach(s=>s.onclick=()=>{
 try{ dialMode = localStorage.getItem('tacho_dialMode')==='1' ? 1 : 0; }catch(e){}
 setTimeout(keepAliveOn, 1200);
 if(state.settings.gpsAuto===true) setTimeout(gpsStart, 800);
-$('endDayBtn').onclick=()=>startAct('rest');
-$('startDayBtn').onclick=()=>startAct('work');
+$('endDayBtn').onclick=()=>runChecklist('end',()=>startAct('rest'));
+$('startDayBtn').onclick=()=>runChecklist('start',()=>startAct('work'));
+$('ckYes').onclick=ckNext;
+$('ckCancel').onclick=()=>{ $('ckOvl').classList.remove('show'); ck=null; };
+$('ckSetBase').onclick=()=>{
+  if(!navigator.geolocation){ toast('Brak GPS w tym telefonie'); return; }
+  toast('Pobieram lokalizację…');
+  navigator.geolocation.getCurrentPosition(p=>{
+    state.settings.ckBase={lat:p.coords.latitude,lon:p.coords.longitude,own:1,name:'obecna lokalizacja ('+p.coords.latitude.toFixed(4)+', '+p.coords.longitude.toFixed(4)+')'}; save(); renderBackupStats();
+    toast('Baza zapisana ✓ (±'+Math.round(p.coords.accuracy)+' m)');
+  },()=>toast('Nie udało się pobrać lokalizacji'),{enableHighAccuracy:true,timeout:15000,maximumAge:0});
+};
+$('ckFindAddr').onclick=async()=>{
+  const q=($('ckAddr').value||'').trim(); if(!q){ toast('Wpisz adres bazy'); return; }
+  const setB=(lat,lon,name)=>{ state.settings.ckBase={lat,lon,own:1,name,addr:q}; save(); renderBackupStats(); toast('Baza zapisana ✓'); };
+  const m=q.match(/^\s*(-?\d{1,2}[.,]\d+)\s*[,; ]\s*(-?\d{1,3}[.,]\d+)\s*$/);
+  if(m){ setB(+m[1].replace(',','.'), +m[2].replace(',','.'), 'współrzędne '+m[1]+', '+m[2]); return; }
+  toast('Szukam adresu…');
+  const look=async s=>{ const r=await fetch('https://nominatim.openstreetmap.org/search?format=json&limit=1&countrycodes=pl&accept-language=pl&q='+encodeURIComponent(s)); const j=await r.json(); return j&&j[0]; };
+  try{
+    let hit=await look(q), approx=false;
+    if(!hit){ const q2=q.replace(/\b\d{2}-\d{3}\b/,'').replace(/\b\d+[a-zA-Z]?\b/,'').replace(/\s+,/g,',').replace(/,\s*,/g,',').trim(); if(q2!==q){ hit=await look(q2); approx=!!hit; } }
+    if(!hit){ toast('Nie znaleziono adresu — użyj „📍 w obecnym miejscu”'); return; }
+    setB(+hit.lat,+hit.lon,q+(approx?' (środek ulicy)':''));
+  }catch(e){ toast('Brak internetu — spróbuj później lub użyj GPS'); }
+};
+document.querySelectorAll('.sw[data-ck]').forEach(s=>s.onclick=()=>{
+  state.settings.checklists=state.settings.checklists===false; save(); renderBackupStats();
+  toast('Checklisty '+(state.settings.checklists!==false?'włączone':'wyłączone'));
+});
 $('art12Btn').onclick=()=>{
   const R=lastR||analyze(state.events,Date.now(),state.settings);
   if(R.art12){ endArt12(); return; }
