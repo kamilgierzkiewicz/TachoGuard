@@ -815,7 +815,7 @@ function analyze(events, now, settings={}){
   if(!segs.length) return R;
 
   /* ---------- 1) Jazda ciągła (4:30) i praca ciągła (6h) ---------- */
-  let cd=0, p15=false, contViolated=false;
+  let cd=0, p15=false, contViolated=false, p15pre=false;
   for(const s of segs){
     const d=mins(s.start,s.end);
     if(s.type==='drive'){
@@ -825,13 +825,14 @@ function analyze(events, now, settings={}){
         contViolated=true;
       }
     } else if(s.type==='rest'){
+      if(s.open) p15pre=p15;                       // stan PRZED trwającą przerwą — ona nie może być swoją własną „1. częścią 15”
       if(d>=L.BREAK_FULL || (d>=L.BREAK_P2 && p15)){ cd=0; p15=false; contViolated=false; }
       else if(d>=L.BREAK_P1){ p15=true; }
       // odpoczynek dobowy/tygodniowy zawsze zeruje (>=45 i tak łapie)
     }
     // poa: nie liczy się do pracy i nie przerywa
   }
-  R.contDrive=cd; R.partial15=p15;
+  R.contDrive=cd; { const ls=segs[segs.length-1]; R.partial15=(ls&&ls.open&&ls.type==='rest')?p15pre:p15; }
 
   /* ---------- 2) Doby pracownicze i odpoczynki dobowe ---------- */
   // klasyfikacja odpoczynków
@@ -1092,7 +1093,7 @@ const fmtHMs=m=>{m=Math.max(0,Math.round(m));return Math.floor(m/60)+':'+pad(m%6
 const DAYS=['niedziela','poniedziałek','wtorek','środa','czwartek','piątek','sobota'];
 function toLocalInput(ms){const d=new Date(ms);return d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate())+'T'+pad(d.getHours())+':'+pad(d.getMinutes());}
 function toast(msg){const t=document.getElementById('toast');t.textContent=tr(msg);t.classList.add('show');clearTimeout(t._h);t._h=setTimeout(()=>t.classList.remove('show'),2400);}
-const APP_VER='v2026-09-21b';
+const APP_VER='v2026-09-28a';
 const $=id=>document.getElementById(id);
 
 /* ================= I18N ================= */
