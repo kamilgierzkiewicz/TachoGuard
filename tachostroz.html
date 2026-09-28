@@ -508,6 +508,45 @@ nav .badge{background:var(--red)}
 </style>
 </head>
 <body>
+<style>
+#splash{position:fixed;inset:0;z-index:9999;background:#F5F3EC;display:flex;flex-direction:column;justify-content:space-between;align-items:center;font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","Helvetica Neue",Helvetica,Arial,sans-serif;-webkit-font-smoothing:antialiased;transition:opacity .5s ease}
+#splash.out{opacity:0;pointer-events:none}
+#splash .spMain{display:flex;flex-direction:column;align-items:center;justify-content:center;margin:auto;padding:20px}
+#splash .spLogo{width:min(240px,55vw);aspect-ratio:280/320;transform:scale(.8);opacity:0;animation:spFadeInScale 1s cubic-bezier(.16,1,.3,1) forwards}
+#splash svg{width:100%;height:100%;overflow:visible}
+#splash .spShield{stroke-dasharray:800;stroke-dashoffset:800;animation:spDrawShield 1.2s cubic-bezier(.4,0,.2,1) .3s forwards}
+#splash .spProg{stroke-dasharray:377;stroke-dashoffset:377;animation:spDrawProgress 1.4s cubic-bezier(.34,1.56,.64,1) .8s forwards}
+#splash .spNeedle{transform-origin:140px 170px;transform:rotate(-120deg);animation:spRotateNeedle 1s cubic-bezier(.34,1.56,.64,1) 1.5s forwards}
+#splash .spTitle{margin-top:32px;font-size:clamp(30px,10vw,42px);font-weight:700;letter-spacing:-.015em;color:#2D4231;opacity:0;transform:translateY(20px);animation:spSlideUp .8s cubic-bezier(.16,1,.3,1) 2s forwards;text-align:center}
+#splash .spFoot{width:100%;padding:24px 16px calc(24px + env(safe-area-inset-bottom));text-align:center;font-size:13px;letter-spacing:-.01em;color:#8E8E93;opacity:0;animation:spFadeIn .8s ease 2.5s forwards;border-top:1px solid rgba(0,0,0,.04);box-sizing:border-box}
+@keyframes spFadeInScale{to{transform:scale(1);opacity:1}}
+@keyframes spDrawShield{to{stroke-dashoffset:0}}
+@keyframes spDrawProgress{to{stroke-dashoffset:94}}
+@keyframes spRotateNeedle{to{transform:rotate(35deg)}}
+@keyframes spSlideUp{to{opacity:1;transform:translateY(0)}}
+@keyframes spFadeIn{to{opacity:1}}
+</style>
+<div id="splash" aria-hidden="true">
+  <div class="spMain">
+    <div class="spLogo"><svg viewBox="0 0 280 320" xmlns="http://www.w3.org/2000/svg">
+      <path class="spShield" d="M140 20 C220 30, 250 50, 250 80 C250 180, 210 260, 140 300 C70 260, 30 180, 30 80 C30 50, 60 30, 140 20 Z" fill="none" stroke="#4F6B53" stroke-width="14" stroke-linecap="round" stroke-linejoin="round"/>
+      <circle cx="140" cy="170" r="60" fill="none" stroke="#E6E3D8" stroke-width="16"/>
+      <circle cx="140" cy="170" r="60" fill="none" stroke="#B84A39" stroke-width="16" stroke-dasharray="377" stroke-dashoffset="280" transform="rotate(-90 140 170)"/>
+      <circle class="spProg" cx="140" cy="170" r="60" fill="none" stroke="#4F6B53" stroke-width="16" stroke-linecap="round" transform="rotate(-90 140 170)"/>
+      <circle cx="140" cy="110" r="10" fill="none" stroke="#222B24" stroke-width="6"/>
+      <g class="spNeedle"><rect x="136" y="130" width="8" height="45" rx="4" fill="#C48E36"/><circle cx="140" cy="170" r="8" fill="#C48E36"/></g>
+    </svg></div>
+    <div class="spTitle">Tacho Stróż</div>
+  </div>
+  <div class="spFoot">2026 @ Created by MVT - Kamil Gierzkiewicz<br>Wszelkie prawa zastrzeżone</div>
+</div>
+<script>
+(function(){ var s=document.getElementById('splash'); if(!s) return;
+  var gone=false, hide=function(){ if(gone) return; gone=true; s.classList.add('out'); setTimeout(function(){ if(s.parentNode) s.parentNode.removeChild(s); },550); };
+  s.addEventListener('click',hide);
+  setTimeout(hide,3400);
+})();
+</script>
 <script>
 window.addEventListener('error',function(e){try{
   var b=document.getElementById('bootErr')||document.body.appendChild(Object.assign(document.createElement('div'),{id:'bootErr'}));
@@ -690,7 +729,9 @@ window.addEventListener('unhandledrejection',function(e){try{
     <h3>Instalacja — iPhone i Android</h3>
     <p class="hint-inline" style="margin:0"><b>iPhone:</b> Safari → <kbd>Udostępnij</kbd> → <kbd>Do ekranu początkowego</kbd>. <b>Android:</b> Chrome → <kbd>⋮</kbd> → <kbd>Zainstaluj aplikację</kbd> (lub „Dodaj do ekranu głównego"). Dzięki plikom <code>manifest.json</code> i <code>sw.js</code> z repo obie platformy działają pełnoekranowo i offline.</p>
   </div>
-  <div class="hint-inline" style="text-align:center;opacity:.55;margin:14px 0 6px">TachoStróż · <span id="appVer"></span></div>
+  <div class="hint-inline" style="text-align:center;opacity:.55;margin:14px 0 4px">TachoStróż · <span id="appVer"></span></div>
+  <a class="btn ghost" id="contactBtn" href="mailto:kamilgierzkiewicz@icloud.com" style="display:block;text-align:center;text-decoration:none;margin:6px 0 8px">✉️ Napisz do autora</a>
+  <div class="hint-inline" style="text-align:center;opacity:.55;margin:0 0 10px;font-size:.75rem">© 2026 Kamil Gierzkiewicz (MVT). Wszelkie prawa zastrzeżone.</div>
 </section>
 
 <!-- ============ BACKUP ============ -->
@@ -736,6 +777,8 @@ window.addEventListener('unhandledrejection',function(e){try{
   <div class="fld"><label class="lbl" for="mStart">Początek</label><input type="datetime-local" id="mStart"></div>
   <div class="fld"><label class="lbl" for="mEnd">Koniec</label><input type="datetime-local" id="mEnd">
     <div class="chk"><input type="checkbox" id="mOpen"><label for="mOpen">Trwa nadal (bez końca)</label></div></div>
+  <div class="fld" id="mRkF"><label class="lbl">Odpoczynek ≥24 h liczyć jako</label>
+    <div class="seg" id="mRk"><button data-k=""><span class="t">Auto</span></button><button data-k="daily"><span class="t">Dobowy</span></button><button data-k="weekly"><span class="t">Tygodniowy</span></button></div></div>
   <div class="fld"><label class="lbl" for="mNote">Notatka (np. odstępstwo art. 12, prom)</label><input type="text" id="mNote" placeholder="opcjonalnie"></div>
   <div class="mrow"><button class="btn ghost" id="mCancel">Anuluj</button><button class="btn" id="mSave">Zapisz</button></div>
   <button class="btn danger" id="mDel" style="margin-top:10px">Usuń wpis</button>
@@ -853,13 +896,13 @@ function buildTimeline(events, now){
     if(prev && s < prev.end) s = prev.end;            // przycinamy nakładki (starsze ma priorytet)
     if(s >= e.end) continue;
     if(prev && s > prev.end) segs.push({type:'rest', start:prev.end, end:s, implicit:true});
-    segs.push({type:e.type, start:s, end:e.end, id:e.id, open:e.open, note:e.note});
+    segs.push({type:e.type, start:s, end:e.end, id:e.id, open:e.open, note:e.note, restKind:e.restKind});
   }
   // scal sąsiadujące odpoczynki
   const out=[];
   for(const s of segs){
     const p=out[out.length-1];
-    if(p && p.type==='rest' && s.type==='rest'){ p.end=s.end; p.implicit=p.implicit&&s.implicit; p.open=s.open; }
+    if(p && p.type==='rest' && s.type==='rest'){ p.end=s.end; p.implicit=p.implicit&&s.implicit; p.open=s.open; p.restKind=p.restKind||s.restKind; }
     else out.push({...s});
   }
   return out;
@@ -907,7 +950,24 @@ function analyze(events, now, settings={}){
   /* ---------- 2) Doby pracownicze i odpoczynki dobowe ---------- */
   // klasyfikacja odpoczynków
   const restsAll = segs.filter(s=>s.type==='rest').map(s=>({...s, d:mins(s.start,s.end)}));
-  const weekly = restsAll.filter(r=>r.d>=L.WEEKLY_REST_RED);
+  // odpoczynek 24–45h = tygodniowy skrócony TYLKO gdy jest potrzebny jako tygodniowy;
+  // jeśli regularny tygodniowy (45h+) i tak mieści się w 6×24h od poprzedniego — to wydłużony DOBOWY (bez rekompensaty)
+  const weekly=[]; let prevWkEnd=null;
+  for(const r of restsAll){
+    if(r.d<L.WEEKLY_REST_RED) continue;
+    let wk;
+    if(r.restKind==='daily') wk=false;
+    else if(r.restKind==='weekly') wk=true;
+    else if(r.d>=L.WEEKLY_REST_REG) wk=true;
+    else {
+      const limit=(prevWkEnd!=null?prevWkEnd:r.end)+L.WEEKLY_GAP*MIN;
+      const nextReg=restsAll.find(x=>x.start>=r.end && x.d>=L.WEEKLY_REST_REG && x.restKind!=='daily');
+      if(nextReg) wk = nextReg.start>limit;                 // regularny zdążył w 6×24h → ten był dobowy
+      else wk = !(prevWkEnd!=null && now<limit);            // jeszcze zdążysz z regularnym → na razie dobowy
+    }
+    r.weekly=wk; if(wk){ weekly.push(r); prevWkEnd=r.end; }
+  }
+  const wkStarts=new Set(weekly.map(r=>r.start));
 
   let pStart = null; // start bieżącej doby (koniec ostatniego kwalifikowanego odpoczynku)
   // start pierwszej doby: początek pierwszej aktywności (nie-odpoczynkowej)
@@ -962,7 +1022,7 @@ function analyze(events, now, settings={}){
     else if(d>=L.BREAK_P1){ fbP15=true; }
 
     const deadline=pStart+L.SHIFT_WINDOW*MIN;
-    if(d>=L.WEEKLY_REST_RED){                     // tygodniowy — zamyka też dobę
+    if(d>=L.WEEKLY_REST_RED && wkStarts.has(s.start)){   // tygodniowy — zamyka też dobę
       if(s.end>deadline && s.start> pStart && mins(pStart, Math.min(s.end,deadline))>0){
         // sprawdź czy w oknie zmieściło się min 9h/11h tego odpoczynku
         const inWin = mins(Math.max(s.start,pStart), Math.min(s.end, deadline));
@@ -1064,8 +1124,8 @@ function analyze(events, now, settings={}){
     for(const r2 of restsAll){
       if(r2.start<r.end || r2.open) continue;
       let base=0;
-      if(r2.d>=L.WEEKLY_REST_REG) base=L.WEEKLY_REST_REG;
-      else if(r2.d>=L.WEEKLY_REST_RED) base=null;               // skrócony tyg. nie może nieść rekompensaty
+      if(r2.weekly && r2.d>=L.WEEKLY_REST_REG) base=L.WEEKLY_REST_REG;
+      else if(r2.weekly) base=null;                             // skrócony tyg. nie może nieść rekompensaty
       else if(r2.d>=L.DAILY_REST_REG) base=L.DAILY_REST_REG;
       else if(r2.d>=L.DAILY_REST_RED) base=L.DAILY_REST_RED;    // rekompensata doklejona do min 9h
       else continue;
@@ -1163,7 +1223,7 @@ const fmtHMs=m=>{m=Math.max(0,Math.round(m));return Math.floor(m/60)+':'+pad(m%6
 const DAYS=['niedziela','poniedziałek','wtorek','środa','czwartek','piątek','sobota'];
 function toLocalInput(ms){const d=new Date(ms);return d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate())+'T'+pad(d.getHours())+':'+pad(d.getMinutes());}
 function toast(msg){const t=document.getElementById('toast');t.textContent=tr(msg);t.classList.add('show');clearTimeout(t._h);t._h=setTimeout(()=>t.classList.remove('show'),2400);}
-const APP_VER='v2026-09-28f';
+const APP_VER='v2026-09-28j';
 const $=id=>document.getElementById(id);
 
 /* ================= I18N ================= */
@@ -1634,6 +1694,10 @@ const TR_PAIRS=[
 ["Opis nie kasuje naruszenia — to Twoje wyjaśnienie dla kontroli. Wydruk podpisz i zachowaj.","The note does not erase the violation — it is your explanation for an inspection. Sign and keep the printout."],
 ["🧾 Zrobiłem wydruk — opisz","🧾 Printout made — annotate"],["✓ Wydruk opisany — ","✓ Printout annotated — "],["pokaż opis","show note"],
 ["Opisane na wydruku: ","Annotated on printout: "],["tygodniowy ✓","weekly ✓"],["dobowy ✓","daily ✓"],
+["Odpoczynek ≥24 h liczyć jako","Count rest ≥24 h as"],["dobowy wydłużony","extended daily"],
+["Tygodniowy","Weekly"],["Dobowy","Daily"],
+["Kontakt: ","Contact: "],["✉️ Napisz do autora","✉️ Email the author"],
+["Wszelkie prawa zastrzeżone.","All rights reserved."],
 ];
 TR_PAIRS.sort((a,b)=>b[0].length-a[0].length);
 function tr(s){ if(LANG!=='en'||!s) return s; for(const p of TR_PAIRS) s=s.split(p[0]).join(p[1]); return s; }
@@ -2044,7 +2108,7 @@ function renderLog(){
     html+=`<div class="ev${cls}" data-id="${e.id}" style="${vv.length?'flex-wrap:wrap':''}">
       <div class="ic" style="color:${TYPES[e.type].color};background:var(--panel2)">${ICONS[e.type]}</div>
       <div class="mid"><div class="tt">${TYPES[e.type].name}${e.end?'':' <span style="color:var(--green)">• trwa</span>'}</div>
-      <div class="sub">${fmtClock(e.start)} – ${e.end?fmtClock(e.end):'…'}${restOK?`<span class="restTag">${dur>=L.WEEKLY_REST_RED?'tygodniowy':'dobowy'} ✓</span>`:''}</div>
+      <div class="sub">${fmtClock(e.start)} – ${e.end?fmtClock(e.end):'…'}${restOK?`<span class="restTag">${(lastR&&lastR.weeklyRests.some(w=>e.start>=w.start&&e.start<w.end))?'tygodniowy':(dur>=L.WEEKLY_REST_RED?'dobowy wydłużony':'dobowy')} ✓</span>`:''}</div>
       ${e.note?`<div class="note">📝 ${e.note}</div>`:''}</div>
       <div class="dur mono">${fmtHMs(dur)}</div>${vHtml}</div>`;
   }
@@ -2084,7 +2148,7 @@ function renderAnalysis(R,now){
 }
 
 /* ================= MODAL ================= */
-let editId=null, mType='drive';
+let editId=null, mType='drive', mRk='';
 function openModal(id){
   editId=id||null;
   const e=id?state.events.find(x=>x.id===id):null;
@@ -2097,6 +2161,8 @@ function openModal(id){
   $('mEnd').value=toLocalInput(e&&e.end?e.end:s+60*MIN);
   $('mEnd').disabled=$('mOpen').checked;
   $('mNote').value=e&&e.note?e.note:'';
+  mRk=(e&&e.restKind)||''; document.querySelectorAll('#mRk button').forEach(b=>b.classList.toggle('sel',b.dataset.k===mRk));
+  $('mRkF').style.display=mType==='rest'?'':'none';
   $('mDel').style.display=e?'block':'none';
   $('ovl').classList.add('show');
 }
@@ -2108,8 +2174,9 @@ function saveModal(){
   if(isNaN(start)||(!open&&(isNaN(end)||end<=start))){toast('Sprawdź daty — koniec musi być po początku');return;}
   if(open){const other=state.events.find(x=>x.end==null&&x.id!==editId); if(other){toast('Inny wpis już trwa — najpierw go zakończ');return;}}
   const note=$('mNote').value.trim();
-  if(editId){const e=state.events.find(x=>x.id===editId);Object.assign(e,{type:mType,start,end,note});}
-  else state.events.push({id:uid(),type:mType,start,end,note});
+  const rk=mType==='rest'&&mRk?mRk:undefined;
+  if(editId){const e=state.events.find(x=>x.id===editId);Object.assign(e,{type:mType,start,end,note}); if(rk) e.restKind=rk; else delete e.restKind;}
+  else state.events.push(Object.assign({id:uid(),type:mType,start,end,note},rk?{restKind:rk}:{}));
   save();closeModal();renderAll();toast('Zapisano');
 }
 
@@ -3037,7 +3104,9 @@ $('addBtn').onclick=()=>openModal(null);
 $('mCancel').onclick=closeModal;
 $('ovl').onclick=e=>{if(e.target.id==='ovl')closeModal();};
 document.querySelectorAll('#mSeg button').forEach(b=>b.onclick=()=>{mType=b.dataset.t;
-  document.querySelectorAll('#mSeg button').forEach(x=>x.classList.toggle('sel',x===b));});
+  document.querySelectorAll('#mSeg button').forEach(x=>x.classList.toggle('sel',x===b)); $('mRkF').style.display=mType==='rest'?'':'none';});
+document.querySelectorAll('#mRk button').forEach(b=>b.onclick=()=>{mRk=b.dataset.k;
+  document.querySelectorAll('#mRk button').forEach(x=>x.classList.toggle('sel',x===b));});
 $('mOpen').onchange=()=>$('mEnd').disabled=$('mOpen').checked;
 $('mSave').onclick=saveModal;
 $('mDel').onclick=()=>{if(confirm(tr('Usunąć ten wpis?'))){state.events=state.events.filter(e=>e.id!==editId);save();closeModal();renderAll();toast('Usunięto');}};
@@ -3214,6 +3283,7 @@ function applyLang(){
 
 load();
 $('appVer').textContent=APP_VER;
+if($('contactBtn')) $('contactBtn').href='mailto:kamilgierzkiewicz@icloud.com?subject='+encodeURIComponent('TachoStróż '+APP_VER);
 applyTheme();
 applyLang();
 buildDial();
