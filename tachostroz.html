@@ -1220,7 +1220,7 @@ const fmtHMs=m=>{m=Math.max(0,Math.round(m));return Math.floor(m/60)+':'+pad(m%6
 const DAYS=['niedziela','poniedziałek','wtorek','środa','czwartek','piątek','sobota'];
 function toLocalInput(ms){const d=new Date(ms);return d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate())+'T'+pad(d.getHours())+':'+pad(d.getMinutes());}
 function toast(msg){const t=document.getElementById('toast');t.textContent=tr(msg);t.classList.add('show');clearTimeout(t._h);t._h=setTimeout(()=>t.classList.remove('show'),2400);}
-const APP_VER='v2026-09-28l';
+const APP_VER='v2026-09-28m';
 const $=id=>document.getElementById(id);
 
 /* ================= I18N ================= */
@@ -2118,12 +2118,12 @@ function renderLog(){
 function renderAnalysis(R,now){
   const V=R.violations;
   const vmA=violMap(R,now), ackd=vmA.filter(m=>m.ack).map(m=>m.v);
-  const viol=vmA.filter(m=>!m.ack).map(m=>m.v), warn=V.filter(v=>v.sev==='warn'), info=V.filter(v=>v.sev==='info');
+  const openM=vmA.filter(m=>!m.ack), viol=openM.map(m=>m.v), warn=V.filter(v=>v.sev==='warn'), info=V.filter(v=>v.sev==='info');
   const b=$('vBadge'); b.style.display=viol.length?'block':'none'; b.textContent=viol.length;
   let h='';
   if(!state.events.length){$('anBody').innerHTML=tr(`<div class="empty"><div class="big">📊</div>Analiza pojawi się po dodaniu pierwszych wpisów.</div>`);return;}
   h+=`<div class="card"><h3><span class="dot" style="background:${viol.length?'var(--red)':'var(--green)'}"></span>${viol.length?`Naruszenia: ${viol.length}`:'Brak naruszeń — jedziesz czysto ✓'}</h3>`;
-  for(const v of viol) h+=`<div class="viol">${v.msg}<div class="when">${fmtDT(v.at)}</div></div>`;
+  for(const m of openM) h+=`<div class="viol">${m.v.msg}<div class="when">${fmtDT(m.v.at)}</div><div class="evV" style="background:none;padding:0;margin-top:4px"><button data-vk="${m.key}">🧾 Zrobiłem wydruk — opisz</button></div></div>`;
   h+='</div>';
   if(ackd.length){h+='<div class="card"><h3><span class="dot" style="background:var(--amber)"></span>Opisane na wydruku: '+ackd.length+'</h3>';
     for(const v of ackd) h+=`<div class="viol warn">✓ ${v.msg}<div class="when">${fmtDT(v.at)}</div></div>`; h+='</div>';}
@@ -2142,6 +2142,7 @@ function renderAnalysis(R,now){
     for(const c of R.compensations) h+=`<div class="row"><span class="k">${fmtHMs(c.owe)} • termin ${fmtDT(c.deadline)}</span><span class="v ${c.paidAt?'ok':(now>c.deadline?'bad':'warn')}">${c.paidAt?'oddana '+fmtDT(c.paidAt)+' ✓':(now>c.deadline?'PO TERMINIE':'do oddania')}</span></div>`;
     h+='</div>';}
   $('anBody').innerHTML=tr(h);
+  $('anBody').querySelectorAll('button[data-vk]').forEach(b=>b.onclick=()=>openViol(b.dataset.vk));
 }
 
 /* ================= MODAL ================= */
@@ -3074,7 +3075,7 @@ function tick(){
   updateDim(lastR);
   updateWakeLock(lastR);
   if(document.querySelector('#tab-today.active')) renderToday(lastR,now);
-  const viol=lastR.violations.filter(v=>v.sev==='viol').length;
+  const viol=violMap(lastR,now).filter(m=>!m.ack).length;   // opisane na wydruku nie liczą się
   const b=$('vBadge'); b.style.display=viol?'block':'none'; b.textContent=viol;
 }
 
