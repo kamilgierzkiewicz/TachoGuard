@@ -349,6 +349,7 @@ nav .badge{position:absolute;top:1px;right:calc(50% - 20px);min-width:16px;heigh
 #ckBox .ckIc{font-size:2.6rem;margin-bottom:6px}
 #ckBox h2{font-size:1.3rem;margin-bottom:6px;line-height:1.3}
 #ckBox .ckLoc{font-size:.8rem;color:var(--mut);margin-bottom:16px;min-height:1em}
+#ckBox.bye h2{font-size:1.45rem}
 #ckBox .ckCancel{background:none;border:0;color:var(--mut);font:inherit;font-size:.85rem;margin-top:12px;padding:6px 12px;text-decoration:underline}
 #alarmBox{background:var(--glass);-webkit-backdrop-filter:blur(26px) saturate(160%);backdrop-filter:blur(26px) saturate(160%);border:2px solid var(--amber);border-radius:26px;padding:26px 22px calc(22px + env(safe-area-inset-bottom)/2);max-width:420px;width:100%;text-align:center;animation:alarmPulse 1.1s ease infinite}
 #alarmBox.crit{border-color:var(--red);animation-name:alarmPulseR}
@@ -679,7 +680,7 @@ window.addEventListener('unhandledrejection',function(e){try{
   </div>
   <div class="card">
     <h3>Checklisty dnia</h3>
-    <p class="hint-inline" style="margin:0 0 6px">Przed <b>Rozpocznij dzień</b> i <b>Zakończ dzień</b> — pytania krok po kroku. Pytania o kartę, wpis manualny, wydruk i zczytanie karty pojawiają się <b>tylko na bazie</b> (w promieniu 500 m od bazy wg GPS; brak lokalizacji = pełna lista).</p>
+    <p class="hint-inline" style="margin:0 0 6px">Przed <b>Rozpocznij dzień</b> i <b>Zakończ dzień</b> — pytania krok po kroku. Pytania o kartę, wpis manualny, wydruk, OUT i zczytanie karty pojawiają się <b>tylko na bazie</b>, a o łóżko na tachografie — <b>tylko w trasie</b> (w promieniu 500 m od bazy wg GPS; brak lokalizacji = pytanie „na bazie / w trasie”).</p>
     <div class="switch"><div class="txt">Checklisty włączone <small>delikatny sygnał przy każdym pytaniu</small></div><div class="sw" data-ck></div></div>
     <p class="hint-inline" id="ckBaseInfo" style="margin:8px 0 8px"></p>
     <input id="ckAddr" type="text" autocomplete="off" placeholder="Adres bazy, np. Jaskółek 20f, Studzienice" style="width:100%;margin-bottom:8px">
@@ -795,6 +796,7 @@ window.addEventListener('unhandledrejection',function(e){try{
   <h2 id="ckQ"></h2>
   <div class="ckLoc" id="ckLoc"></div>
   <button class="btn" id="ckYes">✓ Tak, zrobione</button>
+  <button class="btn ghost" id="ckNo" style="display:none;margin-top:8px"></button>
   <button class="ckCancel" id="ckCancel">Anuluj</button>
 </div></div>
 
@@ -1220,7 +1222,7 @@ const fmtHMs=m=>{m=Math.max(0,Math.round(m));return Math.floor(m/60)+':'+pad(m%6
 const DAYS=['niedziela','poniedziałek','wtorek','środa','czwartek','piątek','sobota'];
 function toLocalInput(ms){const d=new Date(ms);return d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate())+'T'+pad(d.getHours())+':'+pad(d.getMinutes());}
 function toast(msg){const t=document.getElementById('toast');t.textContent=tr(msg);t.classList.add('show');clearTimeout(t._h);t._h=setTimeout(()=>t.classList.remove('show'),2400);}
-const APP_VER='v2026-09-28n';
+const APP_VER='v2026-09-28o';
 const $=id=>document.getElementById(id);
 
 /* ================= I18N ================= */
@@ -1695,6 +1697,12 @@ const TR_PAIRS=[
 ["Tygodniowy","Weekly"],["Dobowy","Daily"],
 ["Kontakt: ","Contact: "],["✉️ Napisz do autora","✉️ Email the author"],
 ["Wszelkie prawa zastrzeżone.","All rights reserved."],
+["Odpoczynek (łóżko) ustawiony na tachografie?","Rest (bed) set on the tachograph?"],
+["Kraj zakończenia ustawiony na tachografie?","End country entered on the tachograph?"],
+["Gdzie jesteś?","Where are you?"],["Nie udało się ustalić lokalizacji","Location unavailable"],
+["🏠 Na bazie","🏠 At base"],["🛣️ W trasie","🛣️ On the road"],["📍 Baza","📍 Base"],
+["Szerokiej drogi! Bezpiecznej jazdy.","Have a safe trip!"],["Dobranoc! Dzień zakończony — wyśpij się dobrze.","Good night! Day ended — sleep well."],
+["Dzień zakończony. Dobrego odpoczynku!","Day ended. Enjoy your rest!"],["Ruszamy 👍","Let's go 👍"],["Dobranoc 👋","Good night 👋"],["Dzięki 👋","Thanks 👋"],
 ];
 TR_PAIRS.sort((a,b)=>b[0].length-a[0].length);
 function tr(s){ if(LANG!=='en'||!s) return s; for(const p of TR_PAIRS) s=s.split(p[0]).join(p[1]); return s; }
@@ -2511,9 +2519,10 @@ const CK_LISTS={
     {ic:'📲',q:'Telefon połączony z tachografem?'}
   ],
   end:[
-    {ic:'🏁',q:'Kraj zakończenia ustawiony?'},
+    {ic:'🛏️',q:'Odpoczynek (łóżko) ustawiony na tachografie?',away:1},
+    {ic:'🏁',q:'Kraj zakończenia ustawiony na tachografie?'},
     {ic:'🧾',q:'Wydruk zrobiony?',base:1},
-    {ic:'🟣',q:'OUT ustawiony?'},
+    {ic:'🟣',q:'OUT ustawiony?',base:1},
     {ic:'💾',q:'Karta zczytana?',base:1}
   ]
 };
@@ -2523,17 +2532,25 @@ function ckDist(a,b){ const R=6371000,r=x=>x*Math.PI/180, dLa=r(b.lat-a.lat), dL
 function runChecklist(kind,done){
   if(state.settings.checklists===false){ done(); return; }
   unlockAudio();
-  ck={kind,done,items:null,i:0,loc:''};
+  ck={kind,done,items:null,i:0,loc:'',mode:'wait'};
+  $('ckNo').style.display='none'; $('ckCancel').style.display=''; $('ckBox').classList.remove('bye');
   $('ckStep').textContent=''; $('ckDots').innerHTML=''; $('ckIc').textContent='📍';
   $('ckQ').textContent=tr('Sprawdzam lokalizację…'); $('ckLoc').textContent=''; $('ckYes').style.visibility='hidden';
   $('ckOvl').classList.add('show');
   const go=atBase=>{
     if(!ck) return;
-    const all=CK_LISTS[kind];
-    ck.items = atBase===false ? all.filter(x=>!x.base) : all;
-    ck.loc = atBase===true ? '📍 Baza — Studzienice' : atBase===false ? '📍 Poza bazą' : '📍 Lokalizacja nieznana — pełna lista';
+    if(atBase==null){                                       // brak GPS → zapytaj
+      ck.mode='loc'; $('ckIc').textContent='📍'; $('ckQ').textContent=tr('Gdzie jesteś?');
+      $('ckLoc').textContent=tr('Nie udało się ustalić lokalizacji');
+      $('ckYes').textContent=tr('🏠 Na bazie'); $('ckNo').textContent=tr('🛣️ W trasie');
+      $('ckYes').style.visibility=''; $('ckNo').style.display=''; chime('soft'); return;
+    }
+    ck.go=null; ck.mode='q';
+    ck.items = CK_LISTS[kind].filter(x=> atBase ? !x.away : !x.base);
+    ck.loc = atBase ? '📍 Baza' : '📍 Poza bazą';
     ck.i=0; ckShow();
   };
+  ck.go=go;
   if(!navigator.geolocation){ go(null); return; }
   let settled=false; const fin=v=>{ if(!settled){ settled=true; go(v); } };
   setTimeout(()=>fin(null),9000);
@@ -2548,14 +2565,26 @@ function ckShow(){
   $('ckStep').textContent=tr((ck.kind==='start'?'Start dnia':'Koniec dnia'))+' · '+(ck.i+1)+'/'+n;
   $('ckDots').innerHTML=ck.items.map((_,k)=>'<i class="'+(k<ck.i?'done':k===ck.i?'cur':'')+'"></i>').join('');
   $('ckIc').textContent=it.ic; $('ckQ').textContent=tr(it.q); $('ckLoc').textContent=tr(ck.loc);
-  $('ckYes').style.visibility='';
+  $('ckYes').style.visibility=''; $('ckYes').textContent=tr('✓ Tak, zrobione'); $('ckNo').style.display='none';
   chime('soft'); if(navigator.vibrate) navigator.vibrate(30);
 }
+let ckByeT=null;
+function ckClose(){ clearTimeout(ckByeT); ck=null; $('ckOvl').classList.remove('show'); $('ckBox').classList.remove('bye'); }
 function ckNext(){
-  if(!ck||!ck.items) return;
+  if(!ck) return;
+  if(ck.mode==='loc'){ ck.go(true); return; }
+  if(ck.mode==='bye'){ ckClose(); return; }
+  if(!ck.items) return;
   if(++ck.i < ck.items.length){ ckShow(); return; }
-  const d=ck.done, k=ck.kind; ck=null; $('ckOvl').classList.remove('show');
-  d(); toast(tr(k==='start'?'✓ Checklista OK — dobrej trasy':'✓ Checklista OK — dobrego odpoczynku'));
+  const d=ck.done, k=ck.kind; d();
+  const h=new Date().getHours(), night=(h>=18||h<5);
+  ck.mode='bye'; $('ckBox').classList.add('bye');
+  $('ckStep').textContent=''; $('ckDots').innerHTML=''; $('ckLoc').textContent='';
+  $('ckIc').textContent = k==='start' ? '🚛' : (night?'🌙':'😴');
+  $('ckQ').textContent = tr(k==='start' ? 'Szerokiej drogi! Bezpiecznej jazdy.' : (night?'Dobranoc! Dzień zakończony — wyśpij się dobrze.':'Dzień zakończony. Dobrego odpoczynku!'));
+  $('ckYes').textContent = tr(k==='start' ? 'Ruszamy 👍' : (night?'Dobranoc 👋':'Dzięki 👋'));
+  $('ckCancel').style.display='none'; $('ckNo').style.display='none';
+  chime('done'); ckByeT=setTimeout(()=>{ if(ck&&ck.mode==='bye') ckClose(); },6000);
 }
 function showDone(title,html){
   $('alarmBox').classList.remove('crit'); $('alarmBox').classList.add('okA');
@@ -3204,7 +3233,8 @@ $('vAck').onclick=()=>{ if(!vCur) return; state.settings.violAck=state.settings.
   save(); $('vOvl').classList.remove('show'); vCur=null; renderAll(); toast('✓ Naruszenie oznaczone jako opisane'); };
 $('vUndo').onclick=()=>{ if(!vCur||!state.settings.violAck) return; delete state.settings.violAck[vCur.key];
   save(); $('vOvl').classList.remove('show'); vCur=null; renderAll(); toast('Cofnięto oznaczenie'); };
-$('ckCancel').onclick=()=>{ $('ckOvl').classList.remove('show'); ck=null; };
+$('ckCancel').onclick=()=>ckClose();
+$('ckNo').onclick=()=>{ if(ck&&ck.mode==='loc') ck.go(false); };
 $('ckSetBase').onclick=()=>{
   if(!navigator.geolocation){ toast('Brak GPS w tym telefonie'); return; }
   toast('Pobieram lokalizację…');
