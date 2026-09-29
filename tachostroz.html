@@ -327,6 +327,7 @@ nav .badge{position:absolute;top:1px;right:calc(50% - 20px);min-width:16px;heigh
 .evV.ok{background:color-mix(in srgb,var(--amber) 12%,transparent)}
 .evV button{display:block;margin-top:6px;border:0;border-radius:8px;padding:7px 10px;font:inherit;font-weight:700;font-size:.8rem;background:var(--red);color:#fff}
 .evV.ok button{background:none;color:var(--mut);padding:4px 0;font-weight:600;text-decoration:underline}
+.locL{font-size:.78rem;color:var(--mut);margin-top:3px}.locL a{color:var(--green);font-weight:600;text-decoration:none}
 .restTag{color:var(--green);font-weight:700;font-size:.72rem;margin-left:4px}
 #vOvl{position:fixed;inset:0;background:rgba(4,6,10,.8);z-index:62;display:none;align-items:center;justify-content:center;padding:18px}
 #vOvl.show{display:flex}
@@ -692,6 +693,7 @@ window.addEventListener('unhandledrejection',function(e){try{
     <h3>Auto-jazda z GPS</h3>
     <p class="hint-inline" style="margin:0 0 6px">Wykrywa ruch pojazdu i <b>sam włącza Jazdę</b>. Nigdy sam jej nie wyłącza — po dłuższym postoju tylko zapyta. Działa <b>tylko przy włączonym ekranie</b> (iOS wyłącza GPS po zablokowaniu telefonu). To pomoc, nie zamiennik tachografu.</p>
     <div class="switch"><div class="txt">Włącz auto-jazdę <small>wymaga zgody na lokalizację</small></div><div class="sw" data-gps></div></div>
+    <div class="switch"><div class="txt">Zapisuj miejsca postojów <small>lokalizacja przy odpoczynku; w Dzienniku od 45 min, z linkiem do mapy</small></div><div class="sw" data-stoploc></div></div>
     <div class="switch"><div class="txt">Pytaj po postoju <small>po 5 min bez ruchu: „przełączyć na Inną pracę?"</small></div><div class="sw" data-gps-ask></div></div>
     <div class="switch"><div class="txt">Alarm gdy GPS milknie <small>głośny sygnał po 10 min bez sygnału — ważne przy telefonie na uchwycie</small></div><div class="sw" data-gps-wd></div></div>
     <div class="switch"><div class="txt">Utrzymuj w tle <small>cichy sygnał audio opóźnia usypianie aplikacji przez system</small></div><div class="sw" data-keep></div></div>
@@ -1222,7 +1224,7 @@ const fmtHMs=m=>{m=Math.max(0,Math.round(m));return Math.floor(m/60)+':'+pad(m%6
 const DAYS=['niedziela','poniedziałek','wtorek','środa','czwartek','piątek','sobota'];
 function toLocalInput(ms){const d=new Date(ms);return d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate())+'T'+pad(d.getHours())+':'+pad(d.getMinutes());}
 function toast(msg){const t=document.getElementById('toast');t.textContent=tr(msg);t.classList.add('show');clearTimeout(t._h);t._h=setTimeout(()=>t.classList.remove('show'),2400);}
-const APP_VER='v2026-09-28o';
+const APP_VER='v2026-09-29a';
 const $=id=>document.getElementById(id);
 
 /* ================= I18N ================= */
@@ -1703,6 +1705,7 @@ const TR_PAIRS=[
 ["🏠 Na bazie","🏠 At base"],["🛣️ W trasie","🛣️ On the road"],["📍 Baza","📍 Base"],
 ["Szerokiej drogi! Bezpiecznej jazdy.","Have a safe trip!"],["Dobranoc! Dzień zakończony — wyśpij się dobrze.","Good night! Day ended — sleep well."],
 ["Dzień zakończony. Dobrego odpoczynku!","Day ended. Enjoy your rest!"],["Ruszamy 👍","Let's go 👍"],["Dobranoc 👋","Good night 👋"],["Dzięki 👋","Thanks 👋"],
+["Zapisuj miejsca postojów","Save stop locations"],["lokalizacja przy odpoczynku; w Dzienniku od 45 min, z linkiem do mapy","location at rest start; shown in the Log from 45 min with a map link"],
 ];
 TR_PAIRS.sort((a,b)=>b[0].length-a[0].length);
 function tr(s){ if(LANG!=='en'||!s) return s; for(const p of TR_PAIRS) s=s.split(p[0]).join(p[1]); return s; }
@@ -2114,12 +2117,13 @@ function renderLog(){
       <div class="ic" style="color:${TYPES[e.type].color};background:var(--panel2)">${ICONS[e.type]}</div>
       <div class="mid"><div class="tt">${TYPES[e.type].name}${e.end?'':' <span style="color:var(--green)">• trwa</span>'}</div>
       <div class="sub">${fmtClock(e.start)} – ${e.end?fmtClock(e.end):'…'}${restOK?`<span class="restTag">${(lastR&&lastR.weeklyRests.some(w=>e.start>=w.start&&e.start<w.end))?'tygodniowy':(dur>=L.WEEKLY_REST_RED?'dobowy wydłużony':'dobowy')} ✓</span>`:''}</div>
-      ${e.note?`<div class="note">📝 ${e.note}</div>`:''}</div>
+      ${e.note?`<div class="note">📝 ${e.note}</div>`:''}${(e.type==='rest'&&e.loc&&dur>=STOPLOC_MIN)?`<div class="locL">📍 <a href="${mapUrl(e.loc)}" target="_blank" rel="noopener">${ckEsc(e.place||(e.loc.lat.toFixed(4)+', '+e.loc.lon.toFixed(4)))}</a></div>`:''}</div>
       <div class="dur mono">${fmtHMs(dur)}</div>${vHtml}</div>`;
   }
   $('logList').innerHTML=tr(html);
   document.querySelectorAll('.ev').forEach(el=>el.onclick=()=>openModal(el.dataset.id));
   document.querySelectorAll('.evV button').forEach(b=>b.onclick=ev=>{ ev.stopPropagation(); openViol(b.dataset.vk); });
+  document.querySelectorAll('.locL a').forEach(a=>a.onclick=ev=>ev.stopPropagation());
 }
 
 /* ================= RENDER: ANALIZA ================= */
@@ -2205,9 +2209,42 @@ function startAct(type, auto){
   if(open){ if(open.type===type){toast(TYPES[type].name+' już trwa');return;}
     if(n<=open.start){ open.type=type; save();renderAll();toast('▶ '+TYPES[type].name+' od '+fmtClock(open.start));return; }
     open.end=n; }
-  state.events.push({id:uid(),type,start:n,end:null,note:''});
+  const ne={id:uid(),type,start:n,end:null,note:''};
+  state.events.push(ne);
   save();renderAll();toast('▶ '+TYPES[type].name+' od '+fmtClock(n));
+  if(type==='rest') stopLocCapture(ne.id);
 }
+/* ================= LOKALIZACJA POSTOJÓW ================= */
+const STOPLOC_MIN=45;                                      // w Dzienniku pokazujemy od 45 min
+function stopLocCapture(id){
+  if(state.settings.stopLoc===false) return;
+  const put=(lat,lon,acc)=>{ const e=state.events.find(x=>x.id===id); if(!e) return;
+    e.loc={lat:+lat.toFixed(5),lon:+lon.toFixed(5),acc:Math.round(acc||0)}; save(); geoName(e); };
+  if(gpsPrev && Date.now()-gpsPrev.t<120000){ put(gpsPrev.la,gpsPrev.lo,0); return; }
+  if(!navigator.geolocation) return;
+  navigator.geolocation.getCurrentPosition(p=>put(p.coords.latitude,p.coords.longitude,p.coords.accuracy),()=>{},
+    {enableHighAccuracy:true,timeout:15000,maximumAge:60000});
+}
+let geoBusy=false;
+async function geoName(e){
+  if(!e||!e.loc||e.place||!navigator.onLine) return;
+  try{
+    const r=await fetch('https://nominatim.openstreetmap.org/reverse?format=jsonv2&zoom=16&accept-language=pl&lat='+e.loc.lat+'&lon='+e.loc.lon);
+    const j=await r.json(), a=(j&&j.address)||{};
+    const town=a.city||a.town||a.village||a.municipality||a.county||'';
+    const road=a.road||'';
+    const cc=(a.country_code||'').toUpperCase();
+    const pl=[town,road].filter(Boolean).join(', ');
+    if(pl||cc){ e.place=(pl||'?')+(cc?' · '+cc:''); save(); if(document.querySelector('#tab-log.active')) renderLog(); }
+  }catch(_){}
+}
+async function geoFill(){                                  // nadrabia nazwy miejsc po odzyskaniu internetu
+  if(geoBusy||!navigator.onLine) return; geoBusy=true;
+  try{ const todo=state.events.filter(e=>e.loc&&!e.place).slice(-15);
+    for(const e of todo){ await geoName(e); await new Promise(r=>setTimeout(r,1200)); } }finally{ geoBusy=false; }
+}
+function mapUrl(l){ return /iPhone|iPad|Macintosh/.test(navigator.userAgent)
+  ? 'https://maps.apple.com/?q='+l.lat+','+l.lon : 'https://www.google.com/maps?q='+l.lat+','+l.lon; }
 function stopAct(){
   if(state.settings.dayLocked===true){ toast('🔒 Dzień zakończony — najpierw „☀️ Rozpocznij dzień”'); return; }
   const open=state.events.find(e=>e.end==null);
@@ -3076,6 +3113,7 @@ function renderBackupStats(){
   document.querySelectorAll('.sw[data-alarm-done]').forEach(s=>s.classList.toggle('on',state.settings.alarmDone!==false));
   document.querySelectorAll('.sw[data-alarm-snd]').forEach(s=>s.classList.toggle('on',state.settings.alarmSnd!==false));
   document.querySelectorAll('.sw[data-ck]').forEach(s=>s.classList.toggle('on',state.settings.checklists!==false));
+  document.querySelectorAll('.sw[data-stoploc]').forEach(s=>s.classList.toggle('on',state.settings.stopLoc!==false));
   if($('ckBaseInfo')){ const cb=state.settings.ckBase; $('ckBaseInfo').innerHTML=tr('Baza: ')+'<b>'+ckEsc((cb&&cb.own)?(cb.name||'własna lokalizacja'):'Jaskółek 20f, 43-215 Studzienice')+'</b>'+tr(' (promień 500 m)'); }
   if($('ckAddr') && document.activeElement!==$('ckAddr')) $('ckAddr').value=(state.settings.ckBase&&state.settings.ckBase.addr)||'Jaskółek 20f, 43-215 Studzienice';
   const thm=(state.settings&&state.settings.theme)||'auto';
@@ -3222,6 +3260,7 @@ document.querySelectorAll('.sw[data-alarm-snd]').forEach(s=>s.onclick=()=>{
 });
 try{ dialMode = localStorage.getItem('tacho_dialMode')==='1' ? 1 : 0; }catch(e){}
 setTimeout(keepAliveOn, 1200);
+setTimeout(geoFill, 5000); window.addEventListener('online',()=>setTimeout(geoFill,2000));
 if(state.settings.gpsAuto===true) setTimeout(gpsStart, 800);
 $('endDayBtn').onclick=()=>runChecklist('end',()=>{ startAct('rest'); state.settings.dayLocked=true; save(); renderAll(); });
 $('startDayBtn').onclick=()=>runChecklist('start',()=>{ state.settings.dayLocked=false; startAct('work'); });
@@ -3257,6 +3296,10 @@ $('ckFindAddr').onclick=async()=>{
     setB(+hit.lat,+hit.lon,q+(approx?' (środek ulicy)':''));
   }catch(e){ toast('Brak internetu — spróbuj później lub użyj GPS'); }
 };
+document.querySelectorAll('.sw[data-stoploc]').forEach(s=>s.onclick=()=>{
+  state.settings.stopLoc=state.settings.stopLoc===false; save(); renderBackupStats();
+  toast('Zapis miejsc postojów '+(state.settings.stopLoc!==false?'włączony':'wyłączony'));
+});
 document.querySelectorAll('.sw[data-ck]').forEach(s=>s.onclick=()=>{
   state.settings.checklists=state.settings.checklists===false; save(); renderBackupStats();
   toast('Checklisty '+(state.settings.checklists!==false?'włączone':'wyłączone'));
