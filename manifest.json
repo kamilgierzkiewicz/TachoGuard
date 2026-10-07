@@ -2,7 +2,7 @@
   "name": "TachoGuard — asystent czasu pracy kierowcy",
   "short_name": "TachoGuard",
   "description": "Czas pracy kierowcy: rozporządzenie 561/2006 i polska ustawa o czasie pracy kierowców",
-  "start_url": "./tachostroz.html",
+  "start_url": "./tachoguard.html",
   "scope": "./",
   "display": "standalone",
   "orientation": "portrait",

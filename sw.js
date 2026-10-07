@@ -1,6 +1,6 @@
 /* TachoGuard — service worker: online zawsze świeża wersja z GitHuba, offline kopia z pamięci */
-const CACHE = 'tachoguard-v2';
-const FILES = ['./tachostroz.html', './manifest.json', './icon-192.png', './icon-512.png', './icon-maskable-512.png'];
+const CACHE = 'tachoguard-v3';
+const FILES = ['./tachoguard.html', './manifest.json', './icon-192.png', './icon-512.png', './icon-maskable-512.png'];
 
 self.addEventListener('install', e => {
   e.waitUntil(caches.open(CACHE).then(c => c.addAll(FILES)).then(() => self.skipWaiting()));
@@ -24,6 +24,6 @@ self.addEventListener('fetch', e => {
         return res;
       })
       .catch(() => caches.match(req, { ignoreSearch: true })
-        .then(r => r || (req.mode === 'navigate' ? caches.match('./tachostroz.html') : undefined)))
+        .then(r => r || (req.mode === 'navigate' ? caches.match('./tachoguard.html') : undefined)))
   );
 });
